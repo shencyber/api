@@ -50,7 +50,7 @@ class Ghs extends Controller
         // header("Content-type: text/html; charset=utf-8"); 
         $req = Request::instance()->param();
         return $ghs->login( $req['phone'] , $req['password'] );
-    
+
     }
 
     /**

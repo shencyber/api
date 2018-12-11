@@ -67,7 +67,7 @@ class GhsMod extends Model
             //生成code
             
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;   
-    	}
+        }
 
     }
 
@@ -75,7 +75,7 @@ class GhsMod extends Model
     {
 
         $modelObj = model('GhsMod');
-        $res = $modelObj->where(['phone'=>$phone , 'password'=>md5(md5(md5($password)))])->value('id') ; 
+        $res = $modelObj->where(['phone'=>$phone , 'password'=>md5(md5($password))])->value('id') ; 
 
         if( !$res ) 
         {
@@ -92,8 +92,25 @@ class GhsMod extends Model
                 "status" => 0,
                 "desc"=>"登录成功"   //插入数据错误
             );
-        }
 
+            //获取供货商的其他信息
+            $res = $this->getGhsInfo($res);
+            $res_arr = json_decode($res,true);
+            if( 0!=$res_arr['status'] )
+            {
+                $obj = array(
+                    'result'=>null,
+                    "status" => -1,
+                    "desc"=>"获取供货商信息失败"   //插入数据错误
+                );       
+            }
+            else
+            {
+                $obj['result']['name'] =$res_arr['result']['name']; 
+                $obj['result']['phone'] =$res_arr['result']['phone']; 
+                $obj['result']['gno'] =$res_arr['result']['gno']; 
+            }
+        }
        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
         die;
         
@@ -106,14 +123,14 @@ class GhsMod extends Model
      */
     public function getGhsInfo( $ghsid )
     {
-        $modelObj = model('GhsMod');
+        // $modelObj = model('GhsMod');
        
-        $res = $modelObj->where( [ 'id'=>$ghsid ])->column( 'name,phone,gno'    ) ;
-
+        // $res = $modelObj->where( [ 'id'=>$ghsid ])->column( 'name,phone,gno'    ) ;
+        $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno')->select() ;
+        // dump( $res );die;
          if( !$res ) 
         {
             $obj = array(
-                'result'=>[],
                      'result'=>null,
                     "status" => -1,
                     "desc"=>"用户未找到"
@@ -124,16 +141,12 @@ class GhsMod extends Model
         {
 
             $obj = array(
-                'result'=>[],
+                'result'=>$res[0],
                 "status" => 0,
                 "desc"=>"查询成功"
             );
 
-            foreach( $res as $value )
-            {
-                array_push( $obj['result'] , $value );
-            }
-
+            
             return json_encode( $obj , JSON_UNESCAPED_UNICODE );
 
         }
