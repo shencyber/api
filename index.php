@@ -10,7 +10,11 @@
 // +----------------------------------------------------------------------
 
 // [ 应用入口文件 ]
-header( 'Content-type:text/html;charset=utf-8' );
+// header('Access-Control-Allow-Origin:*');  
+//         // 响应类型  
+// header('Access-Control-Allow-Methods:POST, GET, PUT, DELETE, OPTIONS');
+//         // 响应头设置  
+//         header('Access-Control-Allow-Headers:x-requested-with,content-type');
 // 定义应用目录
 define('APP_PATH', __DIR__ . '/application/');
 // define('APP_PATH', __DIR__ . '/../application/');

@@ -2,31 +2,67 @@
 
 namespace app\index\controller;
 Use think\Controller;
-use \think\File;
+use think\File;
 Use think\Config;
+Use think\Request;
 Use app\index\model\PhotoMod;
 
-class Photo extends Controller
+class Photo extends Base
 {
     public function upload(){
         // 获取表单上传文件 例如上传了001.jpg
         $file = request()->file('image');
-        
+        // dump(request());die;
+        // return json_encode( ['aa'=>9]  , JSON_UNESCAPED_UNICODE );die;
         // 移动到框架应用根目录/public/uploads/ 目录下
         if($file){
-            $info = $file->rule('uniqid')->move(ROOT_PATH . 'public' . 'uploads');
+            $info = $file->rule('uniqid')->move(ROOT_PATH . 'public' . DS . 'uploads');
+
             if($info){
+                // return json_encode(array('name'=>0) ,JSON_UNESCAPED_UNICODE );die;
                 // 成功上传后 获取上传信息
                 // 输出 jpg
-                echo $info->getExtension();
-                // 输出 20160820/42a79759f284b767dfcb2a0197904287.jpg
-                echo $info->getSaveName();
+                // echo $info->getExtension(); 
                 // 输出 42a79759f284b767dfcb2a0197904287.jpg
-                echo $info->getFilename(); 
+                // echo $info->getFilename();
+
+                $obj['result'] = array
+                    ( 
+                        'shortUrl'=>$info->getFilename() , 
+                        'longUrl'=>Config::get('ImageBaseURL').$info->getFilename() 
+                    ) 
+                 ;
+
+
+
             }else{
+                // return json_encode(array('name'=>9) ,JSON_UNESCAPED_UNICODE );die;
                 // 上传失败获取错误信息
                 echo $file->getError();
             }
+
+            $obj['status']  = 0 ;
+
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE) ;die;
+
+
+            // if($info){
+            //     // 成功上传后 获取上传信息
+            //     // 输出 jpg
+            //     echo $info->getExtension();
+            //     // 输出 20160820/42a79759f284b767dfcb2a0197904287.jpg
+            //     echo $info->getSaveName();
+            //     // 输出 42a79759f284b767dfcb2a0197904287.jpg
+            //     echo $info->getFilename(); 
+            // }else{
+            //     // 上传失败获取错误信息
+            //     echo $file->getError();
+            // }
+        }
+        else
+        {
+            
+            return json_encode( array('name'=>999) , JSON_UNESCAPED_UNICODE) ;die;
         }
     }
    
@@ -38,6 +74,7 @@ class Photo extends Controller
         // die;
         // 获取表单上传文件
         $files = request()->file('image');
+        dump(request());die;
         $obj = array(
             'result'=>[],
             'status'=>null
