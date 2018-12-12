@@ -145,10 +145,11 @@ class PhotoMod extends Model
      */
     public function getImagesByGoodId( $goodid )
     {
-        $modelObj = model('PhotoMod');
+        // $modelObj = model('PhotoMod');
 
         $list = $modelObj->where( [ "goodid"=> $goodid ] )->column('url');
-        
+        $list = Db::table('photo')->where( [ "goodid"=> $goodid ] )->field('url');
+        dump($list);die;
         if( !$list )
         {
             $obj = array(
@@ -160,18 +161,18 @@ class PhotoMod extends Model
         else
         {
             $obj = array(
-                'result'=>array(),
+                'result'=>$list,
                 "status" => 0,
                 "desc"=>"找到了" 
             );
 
-            foreach($list as $url)
-            {
-                array_push( $obj['result'] , $url );
-            }
+            // foreach($list as $url)
+            // {
+            //     array_push( $obj['result'] , $url );
+            // }
 
         }
-    
+        dump( $obj );die;
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
     }
 

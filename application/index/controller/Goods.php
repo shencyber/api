@@ -2,11 +2,12 @@
 
 namespace app\index\controller;
 Use think\Controller;
+Use think\Request;
 Use app\index\model\GoodsMod;
 Use app\index\model\PhotoMod;
 Use think\Config;
 
-class Goods extends Controller
+class Goods extends Base
 {
    
    
@@ -55,7 +56,7 @@ class Goods extends Controller
     // public function shangjia( $goodsid )
     public function shangjia(  )
     {
-        $req = Requeset::instance()->param();
+        $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );
         return $modelObj->shangjia( $res['goodsid'] );
@@ -69,7 +70,7 @@ class Goods extends Controller
     // public function xiajia( $goodsid )
     public function xiajia(  )
     {
-        $req = Requeset::instance()->param();
+        $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );
         return $modelObj->xiajia( $res['goodsid'] );
@@ -82,51 +83,56 @@ class Goods extends Controller
     * @return [type]          [description]
     */
     // public function getGoodsListById( $goodids )
-    public function getGoodsByIds(  )
+    public function getGoodsById(  )
     {
 
-        $req = Requeset::instance()->param();
-        $goodsids = json_decode( $req['goodsids'] , true );
+        $req = Request::instance()->param();
+        // $goodsids = json_decode( $req['goodsids'] , true );
 
-        print_r( $goodsids );
-        if( !is_array( $goodsids ) ) 
-        {
-          $obj = Array(
+        // print_r( $goodsids );
+        // if( !is_array( $goodsids ) ) 
+        // {
+        //   $obj = Array(
 
-                'result'=>null,
-                "status" => -2,
-                "desc"=>"参数格式错误" 
-          );
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
-        } 
+        //         'result'=>null,
+        //         "status" => -2,
+        //         "desc"=>"参数格式错误" 
+        //   );
+        //     return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+        // } 
 
         $modelObj  = new GoodsMod();
         //1、获取商品信息
-        $goodsJson =   $modelObj->getGoodsById( $goodsids ) ;
+        $goodsJson =   $modelObj->getGoodsById( $req['goodsid'] ) ;
         $goodsArr  =   json_decode( $goodsJson , true );
-
         if( 0 != $goodsArr['status'] || !$goodsArr['result'] )
         {
+          echo "d sd";
             return $goodsJson ;die; 
         }
 
         //2、 根据商品信息获取图片信息
-        foreach( $goodsArr['result'] as $index=>$good )
-        {
+        // foreach( $goodsArr['result'] as $index=>$good )
+        // {
             //找对应的商品图片
             $photoObj = controller('photo');
-            $photoJson = $photoObj->getImagesByGoodId( $good['id'] );
+            $photoJson = $photoObj->getImagesByGoodId( $req['goodsid'] );
             $photoArr = json_decode($photoJson , true);
-            // if( 0==$photoArr['status'] &&  $photoArr['result']  )
-            // {
-            // foreach( $photoArr['result'] as $subindex=>$url )
-            // {
-            //     $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
-            // }
-            $goodsArr['result'][$index]['urls'] = $photoArr['result'] ;
-            // }
-        }
-
+            // dump( $photoArr );
+        // dump($goodsArr);
+        die;
+        print_r("-------------------");
+        print_r( $photoArr );die;
+            if( 0==$photoArr['status'] &&  $photoArr['result']  )
+            {
+              foreach( $photoArr['result'] as $subindex=>$url )
+              {
+                  $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
+              }
+              $goodsArr['result']['urls'] = $photoArr['result'] ;
+            }
+        // }
+            // dump( $goodsArr );
         return json_encode( $goodsArr , JSON_UNESCAPED_UNICODE );die;
 
     }
@@ -135,15 +141,18 @@ class Goods extends Controller
   /**
      * 根据供货商id，获取商品列表
      * @param  [type] $ghsid [供货商id]
+     * @param  [type] $type [1-已上架  2-已下架]
+     * @param  [type] $currentpage [当前页数]
+     * @param  [type] $pagesize [每页显示数量]
      * @return [type]        [description]
      */
     // public function getGoodsListByGhsId( $ghsid )
     public function getGoodsListByGhsId(  )
     {
-        $req = Requeset::instance()->param();
+        $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );
-        return $modelObj->getGoodsListByGhsId( $req['ghsid'] );   
+        return $modelObj->getGoodsListByGhsId( $req['ghsid'] , $req['type'],$req['currentpage'],$req['pagesize'] );   
     }
 
   

@@ -16,7 +16,8 @@ class Photo extends Base
         // return json_encode( ['aa'=>9]  , JSON_UNESCAPED_UNICODE );die;
         // 移动到框架应用根目录/public/uploads/ 目录下
         if($file){
-            $info = $file->rule('uniqid')->move(ROOT_PATH . 'public' . DS . 'uploads');
+            $info = $file->rule('uniqid')->move(ROOT_PATH . 'public/uploads');
+            // $info = $file->rule('uniqid')->move(ROOT_PATH . 'public' . DS . 'uploads');
 
             if($info){
                 // return json_encode(array('name'=>0) ,JSON_UNESCAPED_UNICODE );die;
@@ -120,8 +121,10 @@ class Photo extends Base
     // public function addLocalImage( $goodid ,  $imgurls)
     public function addLocalImage( )
     {
+        $req = Request::instance()->param();
+
         $modelObj  = new PhotoMod();
-        return $modelObj->addLocalImage( 1 , ['5c074307c4490.jpg'] );
+        return $modelObj->addLocalImage( 1 , $req['shorturls'] );
         // return $modelObj->addLocalImage( 1 , ['5c074307c4388.jpg']);
         // $res = $modelObj->run( Config::get('ImageServerURL').'5c074307c4388.jpg' , Config::get('ImageServerURL').'5c074307c4490.jpg' );
         
@@ -181,22 +184,30 @@ class Photo extends Base
          
     }
 
-    /**
+    /**fgetImagesByGoodId
+    
      * 根据商品id查找对应的图片
      * @param  [int] $goodid [商品id数组]
      * @return [type]          [description]
      */
-    public function getImagesByGoodId( $goodid )
+    public function getImagesByGoodId( $goodsid )
     {
         $modelObj  = new PhotoMod();
-        $res = $modelObj->getImagesByGoodId( $goodid );
+        $res = $modelObj->getImagesByGoodId( $goodsid );
         $resArr = json_decode($res , true);
+
+        print_r("photo");
+        print_r(  $resArr );
         if( is_array($resArr['result']) )
         {
             $resArr['result'] = array_map( [$this,'fillImageFullPath'] , $resArr['result'] );
         }
+        else
+        {
+            $resArr['result'] = [] ;
+        }
         // return $modelObj->getImagesByGoodId( $goodid );
-        return json_encode( $resArr , JSON_UNESCAPED_UNICODE ) ; die;
+        // return json_encode( $resArr , JSON_UNESCAPED_UNICODE ) ; die;
     }
 
     /**

@@ -208,10 +208,53 @@ class GoodsMod extends Model
 
    /**
     * 根据商品id获取对应的商品数据
+    * @param  [int] $goodid [商品id]
+    * @return [type]          [description]
+    */
+    public function getGoodsById( $goodid )
+    {
+        
+        // $modelObj = model('GoodsMod');
+
+        // $list = $modelObj->all( $goodids );
+        $list = Db::table('goods')->where(['id'=>$goodid])->select();
+        
+        if( !$list )
+        {
+            $obj = array(
+                'result'=>null,
+                "status" => 0,
+                "desc"=>"没找到该商品" 
+            );
+        }
+        else
+        {
+            $obj = array(
+                'result'=>$list[0],
+                "status" => 0,
+                "desc"=>"找到了" 
+            );
+
+            // foreach($list as $key=>$good)
+            // {
+            //     array_push( $obj['result'] , $good );
+            // }
+
+            //开始找对应的图片
+            
+        }
+    
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+    
+    }
+
+
+    /**
+    * 根据商品id获取对应的商品数据
     * @param  [array] $goodids [商品id]
     * @return [type]          [description]
     */
-    public function getGoodsById( $goodids )
+    public function getGoodsByIds( $goodids )
     {
         
         $modelObj = model('GoodsMod');
@@ -246,8 +289,65 @@ class GoodsMod extends Model
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
     
     }
-
     
+
+     /**
+     * 根据供货商id，获取商品列表
+     * @param  [type] $ghsid [供货商id]
+     * @param  [type] $type [1-已上架  2-已下架]
+     * @param  [type] $currentpage [当前页数]
+     * @param  [type] $pagesize [每页显示数量]
+     * @return [type]        [description]
+     */
+    // public function getGoodsListByGhsId( $ghsid )
+    public function getGoodsListByGhsId( $ghsid , $type,$currentpage,$pagesize )
+    {
+        $con = array("ghsid"=>$ghsid , "status"=>$type) ;
+        $count  = Db::table('goods')->where( $con )->count();
+        if( 0 == $count )
+        {
+            $obj = array(
+                    'result'=>[],
+                    "status" => 0,
+                    "desc"=>"无数据"
+                );
+
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+
+        }
+
+       
+        $res = Db::table('goods')->where( $con )
+        ->field('id,name,desc,unitprice,soldamount,source,youpaialbumid,status,uptime,downtime,ghsid,freighttemplateid')->page($currentpage,$pagesize)->select();
+       
+        if( !$res )
+        {
+             $obj = array(
+                    'result'=>null,
+                    "status" => -1,
+                    "desc"=>""
+                );
+        }
+        else
+        {
+            $obj = array(
+                'result'=>$res,
+                "status" => 0,
+                "total"=>$count,
+                "desc"=>"查询成功"
+            );
+
+            // foreach( $res as $value )
+            // {
+            //     array_push( $obj['result'] , $value );
+            // }
+        }
+
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+
+
+    }
+
 
      /**
      * 根据供货商id，获取商品列表,包括本地的和又拍的
@@ -255,40 +355,41 @@ class GoodsMod extends Model
      * @param  [type] $source [来源  0-所有  1-本地 2-又拍 ]
      * @return [type]        [description]
      */
-    public function getGoodsListByGhsId( $ghsid  ,  $source = 0)
-    {
-        $modelObj = model('GoodsMod');
-        $con = array("ghsid"=>$ghsid) ;
-        if( 0 != $source ) $con['source'] = $source;
+    // public function getGoodsListByGhsIdAndSource( $ghsid  ,  $source = 0)
+    // {
+    //     $modelObj = model('GoodsMod');
+    //     $con = array("ghsid"=>$ghsid) ;
+    //     if( 0 != $source ) $con['source'] = $source;
 
-        $res = $modelObj->where( $con )->column('id,name,desc,unitprice,soldamount,source,youpaialbumid,status,uptime,downtime,ghsid,freighttemplateid');
+    //     $res = $modelObj->where( $con )->column('id,name,desc,unitprice,soldamount,source,youpaialbumid,status,uptime,downtime,ghsid,freighttemplateid');
 
-        if( !$res )
-        {
-             $obj = array(
-                    'result'=>null,
-                    "status" => 0,
-                    "desc"=>"无数据"
-                );
-        }
-        else
-        {
-            $obj = array(
-                'result'=>[],
-                "status" => 0,
-                "desc"=>"查询成功"
-            );
+    //     if( !$res )
+    //     {
+    //          $obj = array(
+    //                 'result'=>null,
+    //                 "status" => 0,
+    //                 "desc"=>"无数据"
+    //             );
+    //     }
+    //     else
+    //     {
+    //         $obj = array(
+    //             'result'=>[],
+    //             "status" => 0,
+    //             "desc"=>"查询成功"
+    //         );
 
-            foreach( $res as $value )
-            {
-                array_push( $obj['result'] , $value );
-            }
-        }
+    //         foreach( $res as $value )
+    //         {
+    //             array_push( $obj['result'] , $value );
+    //         }
+    //     }
 
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+    //     return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
 
 
-    }
+    // }
+
 
 
 
