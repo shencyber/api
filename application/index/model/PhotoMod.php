@@ -147,13 +147,24 @@ class PhotoMod extends Model
     {
         // $modelObj = model('PhotoMod');
 
-        $list = $modelObj->where( [ "goodid"=> $goodid ] )->column('url');
-        $list = Db::table('photo')->where( [ "goodid"=> $goodid ] )->field('url');
-        dump($list);die;
+        // $list = $modelObj->where( [ "goodid"=> $goodid ] )->column('url');
+        $list = Db::table('photo')->where( [ "goodid"=> $goodid ] )->field('url')->select();
+        // print_r( $list[0]['url'] );
+        $res = [];
+        foreach( $list as $value )
+        {
+            array_push( $res , $value['url'] );
+        }
+
+        
+        // print_r("res");
+        // print_r($res);
+        //die;
+
         if( !$list )
         {
             $obj = array(
-                'result'=>null,
+                'result'=>[],
                 "status" => 0,
                 "desc"=>"没找到商品图片" 
             );
@@ -161,7 +172,7 @@ class PhotoMod extends Model
         else
         {
             $obj = array(
-                'result'=>$list,
+                'result'=>$res,
                 "status" => 0,
                 "desc"=>"找到了" 
             );
@@ -172,7 +183,8 @@ class PhotoMod extends Model
             // }
 
         }
-        dump( $obj );die;
+        // print_r("db d ata");
+        // print_r( $obj );die;
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
     }
 

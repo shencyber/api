@@ -59,7 +59,7 @@ class Goods extends Base
         $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );
-        return $modelObj->shangjia( $res['goodsid'] );
+        return $modelObj->shangjia( $req['goodsid'] );
     }
 
     /**
@@ -73,7 +73,7 @@ class Goods extends Base
         $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );
-        return $modelObj->xiajia( $res['goodsid'] );
+        return $modelObj->xiajia( $req['goodsid'] );
     }
 
 
@@ -107,7 +107,7 @@ class Goods extends Base
         $goodsArr  =   json_decode( $goodsJson , true );
         if( 0 != $goodsArr['status'] || !$goodsArr['result'] )
         {
-          echo "d sd";
+          
             return $goodsJson ;die; 
         }
 
@@ -118,21 +118,30 @@ class Goods extends Base
             $photoObj = controller('photo');
             $photoJson = $photoObj->getImagesByGoodId( $req['goodsid'] );
             $photoArr = json_decode($photoJson , true);
-            // dump( $photoArr );
+            // print_r("输出照片 ");dump( $photoArr );die;
         // dump($goodsArr);
-        die;
-        print_r("-------------------");
-        print_r( $photoArr );die;
+        // die;
+        // print_r("-------------------");
+        // dump( $photoJson );  //['' , '']
             if( 0==$photoArr['status'] &&  $photoArr['result']  )
             {
-              foreach( $photoArr['result'] as $subindex=>$url )
+              // foreach( $photoArr['result'] as $subindex=>$url )
+              $goodsArr['result']['urls'] = [] ;
+
+              // dump( $goodsArr );
+              // print_r("-------------------");
+              foreach( $photoArr['result'] as $url )
               {
-                  $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
+                array_push( $goodsArr['result']['urls'] , Config::get('ImageBaseURL').$url );
+                  // $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
               }
-              $goodsArr['result']['urls'] = $photoArr['result'] ;
+              // $goodsArr['result']['urls'] = $photoArr['result'] ;
             }
+            
+            // $goodsArr['result']['urls'] = $photoArr['result'] ;
+            // die;
         // }
-            // dump( $goodsArr );
+            // dump( $goodsArr );die;
         return json_encode( $goodsArr , JSON_UNESCAPED_UNICODE );die;
 
     }

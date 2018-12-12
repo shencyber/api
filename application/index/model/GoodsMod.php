@@ -17,7 +17,7 @@ class GoodsMod extends Model
     const SOURCE_LOCAL  = 1 ;//商品来源 1-本地  2-又拍
     const SOURCE_YOUPAI = 2 ;//商品来源 1-本地  2-又拍
     const SHANG_JIA     = 1 ;//商品上架
-    const XIA_JIA       = 0 ;//商品下架
+    const XIA_JIA       = 2 ;//商品下架
 
 
     /**

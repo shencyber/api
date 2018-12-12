@@ -194,20 +194,22 @@ class Photo extends Base
     {
         $modelObj  = new PhotoMod();
         $res = $modelObj->getImagesByGoodId( $goodsid );
+        // print_r("photo");
+        // dump($res);die;
         $resArr = json_decode($res , true);
 
-        print_r("photo");
-        print_r(  $resArr );
-        if( is_array($resArr['result']) )
-        {
-            $resArr['result'] = array_map( [$this,'fillImageFullPath'] , $resArr['result'] );
-        }
-        else
-        {
-            $resArr['result'] = [] ;
-        }
+        // print_r("photo");
+        // print_r(  $resArr );die;
+        // if( is_array($resArr['result']) )
+        // {
+        //     $resArr['result'] = array_map( [$this,'fillImageFullPath'] , $resArr['result'] );
+        // }
+        // else
+        // {
+        //     $resArr['result'] = [] ;
+        // }
         // return $modelObj->getImagesByGoodId( $goodid );
-        // return json_encode( $resArr , JSON_UNESCAPED_UNICODE ) ; die;
+        return json_encode( $resArr , JSON_UNESCAPED_UNICODE ) ; die;
     }
 
     /**
@@ -215,7 +217,7 @@ class Photo extends Base
      */
     public function fillImageFullPath( $url )
     {
-        echo Config::get('ImageBaseURL').$url ;
+        // echo Config::get('ImageBaseURL').$url ;
         return Config::get('ImageBaseURL').$url ;
     }
 
