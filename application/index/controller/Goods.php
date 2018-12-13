@@ -3,9 +3,10 @@
 namespace app\index\controller;
 Use think\Controller;
 Use think\Request;
+Use think\Config;
+Use think\Db;
 Use app\index\model\GoodsMod;
 Use app\index\model\PhotoMod;
-Use think\Config;
 
 class Goods extends Base
 {
@@ -17,6 +18,7 @@ class Goods extends Base
      * @param [int] $[desc] [<商品描述>]
      * @param [int] $[unitprice] [<单价>]
      * @param [int] $[ghsid] [供货商id]
+     * @param [int] $[shortUrls] [图片名称数组]
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
      * @return [type] [description]
      */
@@ -76,6 +78,104 @@ class Goods extends Base
         return $modelObj->xiajia( $req['goodsid'] );
     }
 
+  
+     /**
+     * 更新商品信息
+     * @param [int] $[goodsid] [商品id]
+     * @param [int] $[name] [<商品名称>]
+     * @param [int] $[desc] [<商品描述>]
+     * @param [int] $[unitprice] [<单价>]
+     * @param [int] $[shortUrls] [图片名称数组]
+     * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
+     * @return [type] [description]
+     */
+    public function updateGoods(  )
+    {
+        $req = Request::instance()->param();
+        
+        $modelObj  = new GoodsMod();
+
+        $res = $modelObj->updateGoods( $req['goodsid'] , $req['name'] , $req['desc'] , $req['unitprice']   );
+        // return $res ;
+        // die;
+        $res_arr = json_decode($res , true) ;
+        if( $res_arr['status'] != 0 )
+        {
+            return $res;die;
+        }
+         
+        /**
+         * 对于图片的更新需要做一下操作
+         * 1、获取前台发过来的数组  记为new
+         * 2、从数据库获取已有的图片地址数组 记为old
+         * 2、将新的数组和数据库中查到的地址数组做交集运算 记为C
+         * 3、old-C 得到需要delete的数据 new-C  得到需要insert的数据   
+         * 
+         */
+        $new = $req['shorturls'];  //['a.jpg','b.jpg'] 
+        // print_r( 'new' );
+        // dump( $req['shorturls'] );
+        // die;
+
+
+        $photoObj = controller('photo');
+        $photoJson = $photoObj->getImagesByGoodId( $req['goodsid'] );
+        $photoArr = json_decode($photoJson , true);
+        if( 0==$photoArr['status']   )
+        {
+            $old = $photoArr['result'] ;
+        }
+        else
+        {
+            $old = [] ;
+        }
+        // print_r( 'old' );
+        // dump( $old );
+        // die;
+
+        $c = array_intersect( $new , $old );
+        // print_r('交集');
+        // dump( $c );die;
+
+        $delete = array_diff( $old , $c );
+
+        // print_r('delete');
+        // print_r($delete);
+
+        $insert = array_diff( $new , $c );
+        // print_r('insert');
+        // print_r($insert);
+        // 
+        if( $delete )
+        {
+            $res = Db::table('photo')->where( 'url' ,  'in' , $delete  )->delete();
+        }
+
+         if( $insert )
+        {
+            $modelObj  = new PhotoMod();
+            $res = $modelObj->addLocalImage( $req['goodsid'] , $insert );
+        }
+
+        $resArr = json_decode($res , true);
+
+        // print_r("photo");
+        // print_r(  $resArr );die;
+        if( 0 !=  $resArr['status'] ) 
+        {
+            return $res ;
+            die;
+        }
+
+        $obj = Array(
+            'status' => 0,
+            'result' => null ,
+            'desc' => "修改成功"
+        );
+
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+    }
+
 
      /**
     * 根据商品id获取对应的商品数据
@@ -126,13 +226,15 @@ class Goods extends Base
             if( 0==$photoArr['status'] &&  $photoArr['result']  )
             {
               // foreach( $photoArr['result'] as $subindex=>$url )
-              $goodsArr['result']['urls'] = [] ;
+              $goodsArr['result']['shortUrls'] = [] ;
+              $goodsArr['result']['longUrls'] = [] ;
 
               // dump( $goodsArr );
               // print_r("-------------------");
               foreach( $photoArr['result'] as $url )
               {
-                array_push( $goodsArr['result']['urls'] , Config::get('ImageBaseURL').$url );
+                array_push( $goodsArr['result']['shortUrls'] , $url );
+                array_push( $goodsArr['result']['longUrls'] , Config::get('ImageBaseURL').$url );
                   // $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
               }
               // $goodsArr['result']['urls'] = $photoArr['result'] ;
@@ -158,6 +260,27 @@ class Goods extends Base
     // public function getGoodsListByGhsId( $ghsid )
     public function getGoodsListByGhsId(  )
     {
+        if (Request::instance()->isOptions()) 
+        {
+                header('Access-Control-Allow-Origin:http://localhost:8080');
+                header('Access-Control-Allow-Headers:Accept,Referer,Host,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type,Cookie,token');
+                header('Access-Control-Allow-Credentials:true');
+                header('Access-Control-Allow-Methods:GET,POST,OPTIONS');
+                header('Access-Control-Max-Age:1728000');
+                header('Content-Type:text/plain charset=UTF-8');
+                header('Content-Length: 0', true);
+                header('status: 204');
+                header('HTTP/1.0 204 No Content');
+        }
+        else
+        {
+                header('Access-Control-Allow-Origin:http://localhost:8080');
+                // header('Access-Control-Allow-Origin:*');
+                header('Access-Control-Allow-Headers:Accept,Referer,Host,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type,Cookie,token');
+                header('Access-Control-Allow-Credentials:true');
+                header('Access-Control-Allow-Methods:GET,POST,OPTIONS');
+        }
+
         $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
         // return $modelObj->shangjia( $goodsid );

@@ -173,6 +173,41 @@ class GoodsMod extends Model
     }
 
     /**
+     * 更新商品信息
+     * @param [int] $[goodsid] [商品id]
+     * @param [int] $[name] [<商品名称>]
+     * @param [int] $[desc] [<商品描述>]
+     * @param [int] $[unitprice] [<单价>]
+     * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
+     * @return [type] [description]
+     */
+    public function updateGoods($goodsid , $name , $desc , $unitprice)
+    {
+        $data = [ 'name'=>$name , 'desc'=>$desc , 'unitprice'=>$unitprice ];
+        // print_r($data);die;
+        $res = DB::table('goods')->where(['id'=>$goodsid])->update( $data );
+        if( $res >= 0 )
+        {
+            $obj = Array(
+                'result'=>$res,
+                "status" => 0,
+                "desc"=>"更新成功"   
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'result'=>null,
+                "status" => -1,
+                "desc"=>"更新失败"   
+            );   
+        }
+        
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+        
+    }
+
+    /**
      * 更新商品已收数量  订单状态为待收款，则数量增加  订单状态为已取消，则数量减少
      * @param  [int] $goodid [商品id]
      * @param  [int] $amount [description]

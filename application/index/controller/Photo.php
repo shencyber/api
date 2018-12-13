@@ -124,7 +124,7 @@ class Photo extends Base
         $req = Request::instance()->param();
 
         $modelObj  = new PhotoMod();
-        return $modelObj->addLocalImage( 1 , $req['shorturls'] );
+        return $modelObj->addLocalImage( $req['goodsid'] , $req['shorturls'] );
         // return $modelObj->addLocalImage( 1 , ['5c074307c4388.jpg']);
         // $res = $modelObj->run( Config::get('ImageServerURL').'5c074307c4388.jpg' , Config::get('ImageServerURL').'5c074307c4490.jpg' );
         

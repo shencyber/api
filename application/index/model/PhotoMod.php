@@ -149,6 +149,8 @@ class PhotoMod extends Model
 
         // $list = $modelObj->where( [ "goodid"=> $goodid ] )->column('url');
         $list = Db::table('photo')->where( [ "goodid"=> $goodid ] )->field('url')->select();
+
+        
         // print_r( $list[0]['url'] );
         $res = [];
         foreach( $list as $value )
@@ -266,7 +268,7 @@ class PhotoMod extends Model
             }
         }
         
-        var_dump($hash);
+        // var_dump($hash);
         return $hash;
         
     }
