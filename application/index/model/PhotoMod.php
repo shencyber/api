@@ -31,7 +31,8 @@ class PhotoMod extends Model
        {    
             array_push( $list , [ 
                 'goodid'=>$goodid , 
-                'code'=>$this->getHashValue( Config::get('ImageBaseURL').$imgurl ) , 
+                // 'code'=>$this->getHashValue( Config::get('ImageBaseURL').$imgurl ) , 
+                'code'=>$this->getHashValue( $imgurl ) , 
                 'url'=>$imgurl, 
                 'uploadtime'=>date('Y-m-d H:i:s')] 
             );
@@ -150,7 +151,7 @@ class PhotoMod extends Model
         // $list = $modelObj->where( [ "goodid"=> $goodid ] )->column('url');
         $list = Db::table('photo')->where( [ "goodid"=> $goodid ] )->field('url')->select();
 
-        
+
         // print_r( $list[0]['url'] );
         $res = [];
         foreach( $list as $value )
