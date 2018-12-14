@@ -9,6 +9,7 @@ class Youpai extends Controller
 {
 
 
+
     /**
      * 同步供货商照片
      * @param  [type] $ghsid [供货商id]

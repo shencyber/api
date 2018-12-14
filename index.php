@@ -19,5 +19,5 @@
 define('APP_PATH', __DIR__ . '/application/');
 // define('APP_PATH', __DIR__ . '/../application/');
 // 加载框架引导文件
-require './thinkphp/start.php';
-// require __DIR__ . '/../thinkphp/start.php';
+// require './thinkphp/start.php';
+require __DIR__ . '/../thinkphp/start.php';

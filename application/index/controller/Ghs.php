@@ -3,8 +3,8 @@
 namespace app\index\controller;
 Use think\Controller;
 Use \think\Request;
+Use think\Config;
 Use app\index\model\GhsMod;
-
 
 class Ghs extends Base
 {
@@ -12,7 +12,8 @@ class Ghs extends Base
     {
 
 
-        return 'ok'; 
+        // $this->response(34);
+        exit( json_encode(array('name'=>'ddd') , JSON_UNESCAPED_UNICODE) ); 
     }
 
     /**
@@ -43,9 +44,11 @@ class Ghs extends Base
         $ghs  = new GhsMod();
        
         $req = Request::instance()->param();
-
-        return $ghs->login( $req['phone'] , $req['password'] );
-
+        $res = $ghs->login( $req['phone'] , $req['password'] );
+        // dump( $res );
+        // return json_encode($res, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+        // return json_encode($res);
+        return $res ;
     }
 
     /**
@@ -59,6 +62,40 @@ class Ghs extends Base
         $req = Request::instance()->param();
         return $ghs->getGhsInfo( $req['ghsid'] );
       
+    }
+
+
+
+     /**
+     * [createUserIdYP 生成又拍的userid]
+     * @param  [type] $token   [description]
+     * @param  [type] $opendId [description]
+     * @return [type]          [description]
+     */
+    public function createUserIdYP( )
+    {
+
+        $req = Request::instance()->param();
+        $ghs  = new GhsMod();
+        $res = $ghs->createUserIdYP( $req['token'] , $req['openid'] , Config::get('YPAppKey') ,$req['userid'] );
+        if(  $res )
+        {
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '生成成功' ,
+                'result' => null
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'status' => 1 ,
+                'desc'   => '生成失败' ,
+                'result' => null
+            );   
+        }
+
+        return  json_encode( $obj , JSON_UNESCAPED_UNICODE );
     }
 
 
@@ -91,6 +128,36 @@ class Ghs extends Base
         $res = $ghs->updateYPToken( 1 , "56767878" );;
         return $res ;
 
+    }
+
+    /**
+     * 潘盾用户是否有又拍的userid
+     * @param  [int]  $ghsid [description]
+     * @return boolean        [description]
+     */
+    public function hasUseridYP( $ghsid )
+    {
+        $req = Request::instance()->param();
+        $ghs  = new GhsMod();
+        $res = $ghs->hasUseridYP( $req['ghsid'] );
+        if( $res )
+        {
+            $obj = Array(
+                'status'=>0,
+                'desc'=>"账号存在",
+                'result'=>null
+            );
+
+        }
+        else
+        {
+            $obj = Array(
+                'status'=>1,
+                'desc'=>"账号不存在",
+                'result'=>null
+            );            
+        }
+        return json_encode($obj , JSON_UNESCAPED_UNICODE) ;
     }
 
 }

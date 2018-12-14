@@ -31,8 +31,7 @@ class PhotoMod extends Model
        {    
             array_push( $list , [ 
                 'goodid'=>$goodid , 
-                // 'code'=>$this->getHashValue( Config::get('ImageBaseURL').$imgurl ) , 
-                'code'=>$this->getHashValue( $imgurl ) , 
+                'code'=>$this->getHashValue( Config::get('ImageBaseURL').$imgurl ) , 
                 'url'=>$imgurl, 
                 'uploadtime'=>date('Y-m-d H:i:s')] 
             );

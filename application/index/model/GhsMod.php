@@ -7,6 +7,7 @@
 namespace app\index\model;
 Use think\Model;
 Use think\Db;
+Use think\Config;
 class GhsMod extends Model
 {
 
@@ -65,9 +66,9 @@ class GhsMod extends Model
 
 
             //生成code
+        }
             
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;   
-        }
 
     }
 
@@ -93,8 +94,13 @@ class GhsMod extends Model
                 "desc"=>"登录成功"   //插入数据错误
             );
 
+            
+
             //获取供货商的其他信息
             $res = $this->getGhsInfo($res);
+            // print_r("gonghuoshanginfo");
+            // dump($res);
+
             $res_arr = json_decode($res,true);
             if( 0!=$res_arr['status'] )
             {
@@ -111,8 +117,9 @@ class GhsMod extends Model
                 $obj['result']['gno'] =$res_arr['result']['gno']; 
             }
         }
+        
        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
-        die;
+      
         
     }
 
@@ -146,13 +153,73 @@ class GhsMod extends Model
                 "desc"=>"查询成功"
             );
 
-            
+            // print_r('供货商信息');
+            // dump( $obj );die;
             return json_encode( $obj , JSON_UNESCAPED_UNICODE );
 
         }
         
         die;
     }
+
+    /**
+     * 生成又拍的userid
+     */
+    
+    /**
+     * [auhorize 又拍相册鉴权]
+     * @param  [type] $token   [description]
+     * @param  [type] $opendId [description]
+     * @param  [type] $appKey  [description]
+     * @param  [type] $userid  [用户id]
+     * @return [type]          [description]
+     */
+    public function auhorize( $token , $openId , $appKey , $userid )
+    {   
+        // print_r('token');
+        // dump( $token );
+        // print_r('openId');
+        // dump( $openId );
+        // print_r('appKey');
+        // dump( $appKey );
+        // $str = $token.'/account/general/openId='.$openId.$appKey ;
+        $sign = md5( join('' , [ $token , '/account/general/openId=' , $openId , $appKey ]) );
+        // print_r('sign');
+        // dump( $sign );
+
+ // (3)获取userId
+ //    get请求https://x.yupoo.com/api/account/general?token={{token}}&sign={{sign}}&openId={{openId}}
+
+
+        // 发送curlGET请求获取userid
+        $api = Array(
+            Config::get('YPApi'),
+            'account/general?token=',
+            $token,
+            '&sign=',
+            $sign,
+            '&openId=',
+            $openId
+            );
+        // dump( join('' , $api ) );
+        $ch = curl_init();
+        curl_setopt( $ch , CURLOPT_URL , join('' , $api) );
+        curl_setopt( $ch , CURLOPT_RETURNTRANSFER , 1);
+        curl_setopt( $ch , CURLOPT_HEADER , 0);
+        $output = json_decode( curl_exec( $ch ) , true   );
+        curl_close($ch);
+        // print_r('jie');
+        // dump( $output );
+        // die;
+        // 解析返回结果
+        $useridYP = $output['data']['account']['userId'] ;
+        // $useridYP = $output['data']['account']['userId'] ;
+        // $useridYP = $output['data']['account']['userId'] ;
+
+        // 更新数据库信息,包括youpaiuserid，youpaiopenid ,youpaitoken
+        $res = Db::table($this->table)->where(['id'=>$userid])->update(['youpaiuserid'=>$useridYP,'youpaiopenid'=>$openId,'youpaitoken'=>$token]);
+        return !!$res ;
+    }   
 
     /**
      * 添加供货商的又拍信息，userid openid  token
@@ -212,6 +279,20 @@ class GhsMod extends Model
         }
 
         return json_encode($obj , JSON_UNESCAPED_UNICODE );
+    }
+
+
+    /**
+     * 判断供货商是否有又拍的userid
+     * @param  [int]  $ghsid [description]
+     * @return boolean        [description]
+     */
+    public function hasUseridYP( $ghsid )
+    {
+        $res = DB::table('gonghuoshang')->where(['id'=>$ghsid])->field('youpaiuserid')->select();
+        // dump( $res );die;
+        return !!$res[0]['youpaiuserid'] ;
+        
     }
 
 
