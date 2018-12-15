@@ -131,7 +131,7 @@ class Ghs extends Base
     }
 
     /**
-     * 潘盾用户是否有又拍的userid
+     * 判断用户是否有又拍的userid
      * @param  [int]  $ghsid [description]
      * @return boolean        [description]
      */
@@ -158,6 +158,47 @@ class Ghs extends Base
             );            
         }
         return json_encode($obj , JSON_UNESCAPED_UNICODE) ;
+    }
+
+
+    /**
+    *根据供货商用户id获取对应的相册
+    *@parma [int] $ghsid       [供货商id]
+    *@parma [int] $currentpage [当前页数]
+    *@return  
+    */
+    public function getAlbumsByGhsId( $ghsid , $currentpage )
+    {
+        $req = Request::instance()->param();
+        $ghs  = new GhsMod();
+        //1、根据用户id获取供货商的又拍userid
+        $res = $ghs->getGhsInfo( $ghsid );
+        // dump(  $res);
+        $res_arr = json_decode( $res , true );
+        if( 0 != $res_arr['status'] ) 
+        {
+            return $res;
+            die;
+        }
+        $res =$ghs->getAlbumsByGhsId( $res_arr['result']['youpaiuserid'] , $req['currentpage'] );
+        if( $res )
+        {
+            $obj =Array(
+                'status' => 0 ,
+                'desc'   => "查询相册成功",
+                'result' => $res
+            );
+        }
+        else
+        {
+            $obj =Array(
+                'status' => 1 ,
+                'desc'   => "查询相册成功",
+                'result' => null
+            );   
+        }
+
+        return json_encode( $obj  , JSON_UNESCAPED_UNICODE );
     }
 
 }

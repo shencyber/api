@@ -20,7 +20,7 @@ return [
     'YPAppSecret '          =>'U2FsdGVkX19EwcUvXK5hctz6U3lfI751cXHn61V5R4w5MI6nfgA0v/SX4jEJBa8ThSvfZ7yAKUmhVpIjTBfR4w==',
     'YPAppKey'              =>'126f7bbef513daca0e66478a5000edeb71b4c193',
     'YPApi'                 =>'https://x.yupoo.com/api/',
-    'YPImageBaseUrl'        =>'https://pic.yupoo.com/',
+    'YPImageBaseUrl'        =>'https://pic.yupoo.com',
 
     
     // +----------------------------------------------------------------------

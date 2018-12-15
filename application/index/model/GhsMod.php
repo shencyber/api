@@ -133,7 +133,7 @@ class GhsMod extends Model
         // $modelObj = model('GhsMod');
        
         // $res = $modelObj->where( [ 'id'=>$ghsid ])->column( 'name,phone,gno'    ) ;
-        $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno')->select() ;
+        $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno,youpaiuserid')->select() ;
         // dump( $res );die;
          if( !$res ) 
         {
@@ -294,6 +294,45 @@ class GhsMod extends Model
         return !!$res[0]['youpaiuserid'] ;
         
     }
+
+    /**
+    *根据供货商用户id获取对应的相册
+    *@parma [int] $youpaiuserid       [供货商id]
+    *@parma [int] $currentpage [当前页数]
+    *@return  
+    */
+    public function getAlbumsByGhsId( $youpaiuserid , $currentpage )
+    {
+        // $api = Config::get('YPApi').'web/users/{userId}/albums?page=1';
+        $api = Array(
+            Config::get('YPApi') ,
+            'web/users/' ,
+            $youpaiuserid ,
+            '/albums?page=' ,
+            $currentpage
+        );
+        // print_r( join('',$api) );die;
+        $ch = curl_init();
+        curl_setopt( $ch , CURLOPT_URL , join('' , $api) );
+        curl_setopt( $ch , CURLOPT_RETURNTRANSFER , 1);
+        curl_setopt( $ch , CURLOPT_HEADER , 0);
+        $output = json_decode( curl_exec( $ch ) , true   );
+        curl_close($ch);
+        // print_r('-------------');
+        // dump( $output );
+
+        //1、解析结果
+        $res = $output['data']['list'];
+        // 其中需要的字段是name、description、cover、photoId字段
+        // 添加上长地址 
+        foreach( $res as $i=>$item)
+        {
+            $res[$i]['longUrl'] = Config::get('YPImageBaseUrl').$item['cover'];
+        }
+        // dump($res);die;
+        return  $res ;
+    }
+
 
 
 }
