@@ -17,6 +17,7 @@ class Goods extends Base
      * @param [int] $[name] [<商品名称>]
      * @param [int] $[desc] [<商品描述>]
      * @param [int] $[unitprice] [<单价>]
+     * @param [int] $[unit] [<单位>]
      * @param [int] $[ghsid] [供货商id]
      * @param [int] $[shortUrls] [图片名称数组]
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
@@ -26,19 +27,21 @@ class Goods extends Base
     public function addLocal(    )
     { 
         $req = Request::instance()->param();
-        
         $modelObj  = new GoodsMod();
 
-        $res = $modelObj->addLocal( $req['name'] , $req['desc'] , $req['unitprice'] , $req['ghsid'] );
+        $res = $modelObj->addLocal( $req['name'] , $req['desc'] , $req['unitprice'] ,$req['unit'], $req['ghsid'] );
         $res_arr = json_decode($res , true) ;
+        // dump( $res_arr );die;
         if( $res_arr['status'] != 0 )
         {
             return $res;die;
         }
+
         
         //添加对应的图片
         $photo = controller('Photo');
-        $res_photo = $photo->addLocalImage( $res_arr['result'] , join( "," , $req['shorturls'] )  );
+        // $res_photo = $photo->addLocalImage( $res_arr['result'] , join( "," , $req['shorturls'] )  );
+        $res_photo = $photo->addLocalImage( $res_arr['result'] ,  $req['shorturls']   );
         $res_arr = json_decode($res_photo , true) ;
         if( $res_arr['status'] != 0 )
         {
@@ -257,35 +260,51 @@ class Goods extends Base
      * @param  [type] $pagesize [每页显示数量]
      * @return [type]        [description]
      */
-    // public function getGoodsListByGhsId( $ghsid )
-    public function getGoodsListByGhsId(  )
+    public function getGoodsListByGhsId()
     {
-        if (Request::instance()->isOptions()) 
+        $req = Request::instance()->param();
+
+        $con = array("ghsid"=>$req['ghsid'] , "status"=>$req['type']) ;
+        $count  = Db::table('goods')->where( $con )->count();
+
+        if( 0 == $count )
         {
-                header('Access-Control-Allow-Origin:http://localhost:8080');
-                header('Access-Control-Allow-Headers:Accept,Referer,Host,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type,Cookie,token');
-                header('Access-Control-Allow-Credentials:true');
-                header('Access-Control-Allow-Methods:GET,POST,OPTIONS');
-                header('Access-Control-Max-Age:1728000');
-                header('Content-Type:text/plain charset=UTF-8');
-                header('Content-Length: 0', true);
-                header('status: 204');
-                header('HTTP/1.0 204 No Content');
-        }
-        else
-        {
-                header('Access-Control-Allow-Origin:http://localhost:8080');
-                // header('Access-Control-Allow-Origin:*');
-                header('Access-Control-Allow-Headers:Accept,Referer,Host,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type,Cookie,token');
-                header('Access-Control-Allow-Credentials:true');
-                header('Access-Control-Allow-Methods:GET,POST,OPTIONS');
+          $obj = Array(
+            'status' => 0,
+            'total'  => 0,
+            'desc'   => '查询成功',
+            'result' => []
+          );
+
+          return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
         }
 
-        $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
-        // return $modelObj->shangjia( $goodsid );
-        return $modelObj->getGoodsListByGhsId( $req['ghsid'] , $req['type'],$req['currentpage'],$req['pagesize'] );   
+        $res = $modelObj->getGoodsListByGhsId( $req['ghsid'] , $req['type'],$req['currentpage'],$req['pagesize'] ); 
+
+        foreach( $res as $key=>$val )
+        {
+            foreach( $val['urls'] as $index=>$url )
+            {
+
+              $res[$key]['urls'][$index] = Config::get('ImageBaseURL').$url;
+              
+            }
+        }
+
+        $obj =Array(
+          'status' => 0,
+          'total'  => $count,
+          'desc'   => '查询成功',
+          'result' => $res
+
+        );  
+
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+
     }
+
+
 
   
 

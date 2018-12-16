@@ -7,6 +7,7 @@
 namespace app\index\model;
 Use think\Model;
 Use think\Db;
+Use app\index\model\PhotoMod;
 class GoodsMod extends Model
 {
 
@@ -25,12 +26,13 @@ class GoodsMod extends Model
      * @param [int] $[name] [<商品名称>]
      * @param [int] $[desc] [<商品描述>]
      * @param [int] $[unitprice] [<单价>]
+     * @param [int] $[unit] [<单位>]
      * @param [int] $[ghsid] [供货商id]
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
      * @param [int] $[imgurls] [商品图片地址数组>]<第一阶段先不加>
      * @return [type] [description]
      */
-    public function addLocal( $name , $desc="" ,$unitprice,$ghsid,$freighttemplateid=""   )
+    public function addLocal( $name , $desc="" ,$unitprice, $unit ,$ghsid,$freighttemplateid=""   )
     {
         $modelObj = model('GoodsMod');
 
@@ -332,53 +334,25 @@ class GoodsMod extends Model
      * @param  [type] $type [1-已上架  2-已下架]
      * @param  [type] $currentpage [当前页数]
      * @param  [type] $pagesize [每页显示数量]
-     * @return [type]        [description]
+     * @return [Array]        [空数组-无商品数据  或者  二维数组]
      */
-    // public function getGoodsListByGhsId( $ghsid )
     public function getGoodsListByGhsId( $ghsid , $type,$currentpage,$pagesize )
     {
         $con = array("ghsid"=>$ghsid , "status"=>$type) ;
-        $count  = Db::table('goods')->where( $con )->count();
+        $count  = Db::table($this->table)->where( $con )->count();
         if( 0 == $count )
         {
-            $obj = array(
-                    'result'=>[],
-                    "status" => 0,
-                    "desc"=>"无数据"
-                );
-
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
-
+            return [];die;
         }
 
-       
-        $res = Db::table('goods')->where( $con )
-        ->field('id,name,desc,unitprice,soldamount,source,youpaialbumid,status,uptime,downtime,ghsid,freighttemplateid')->page($currentpage,$pagesize)->select();
-       
-        if( !$res )
+   
+        $res = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid', 'left')->where($con)->field('g.id,g.name,g.unitprice,group_concat(p.url) urls')->group('g.id')->page($currentpage,$pagesize)->select();
+
+        foreach( $res as $key=>$val )
         {
-             $obj = array(
-                    'result'=>null,
-                    "status" => -1,
-                    "desc"=>""
-                );
+            $res[$key]['urls'] = explode("," , $val['urls']);
         }
-        else
-        {
-            $obj = array(
-                'result'=>$res,
-                "status" => 0,
-                "total"=>$count,
-                "desc"=>"查询成功"
-            );
-
-            // foreach( $res as $value )
-            // {
-            //     array_push( $obj['result'] , $value );
-            // }
-        }
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+        return $res ;
 
 
     }

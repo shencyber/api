@@ -19,29 +19,12 @@ class GuanZhuMod extends Model
      * 添加关注关系
      * @param [int] $[dlsid] [<代理商id>]
      * @param [int] $[ghsid] [<供货商id>]
-     * @return [type] [description]
+     * @return [int] [自增id]
      */
     public function add( $dlsid , $ghsid    )
     {
         $modelObj = model('GuanZhuMod');
 
-
-         // 1、查询该手机号是否已经存在
-        $res = $modelObj->where([ 'dlsid'=>$dlsid , 'ghsid'=>$ghsid ] )->find() ; 
-
-        //如果查到该记录，则说明该手机号已经被注册了
-        if( $res )
-        {
-
-            $obj = array(
-                "status" => 2 , 
-                "desc" => "已收藏"
-            );
-
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE) ;die;
-
-        }
-       
         $modelObj->data( [ 
             'dlsid'=>$dlsid , 
             'ghsid'=>$ghsid , 
@@ -49,30 +32,9 @@ class GuanZhuMod extends Model
             'status'=>1
             ] );
 
-        $res = $modelObj->save();
-        if( $res !== false )
-        {
-            $obj = array( 
-                "status" => 0 , 
-                "inseredId" => $modelObj->id ,
-                "desc" => "添加成功"
-            );
-
-
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;
-        }
-        else
-        {
-            $obj = array( 
-                "status" => -1 ,  //插入数据错误
-                "desc" => "添加失败"
-            );
-
-
-            //生成code
-            
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;   
-    	}
+        $modelObj->save();
+        return $modelObj->id;
+        
 
     }
 
@@ -125,7 +87,7 @@ class GuanZhuMod extends Model
     }
 
     /**
-     * 获取素有关注信息
+     * 获取所有关注信息
      * @return [type]        [description]
      */
     public function allList()
@@ -173,43 +135,28 @@ class GuanZhuMod extends Model
     /**
      * 根据代理商id，获取关注列表
      * @param  [type] $dlsid [代理商id]
-     * @return [type]        [description]
+     * @return [Array]        [array(2) {
+                                  [0] => array(5) {
+                                    ["id"] => string(1) "4"
+                                    ["dlsid"] => string(1) "1"
+                                    ["ghsid"] => string(1) "3"
+                                    ["gztime"] => string(19) "2018-12-04 20:19:12"
+                                    ["status"] => string(1) "1"
+                                  }
+                                  [1] => array(5) {
+                                    ["id"] => string(1) "5"
+                                    ["dlsid"] => string(1) "1"
+                                    ["ghsid"] => string(1) "4"
+                                    ["gztime"] => string(19) "2018-12-04 20:20:11"
+                                    ["status"] => string(1) "1"
+                                  }
+                                }]
      */
     public function getListByDlsId( $dlsid )
     {
-        $modelObj = model('GuanZhuMod');
-        $res = $modelObj->where(["dlsid"=>$dlsid])->column('id,dlsid,ghsid,gztime,status');
-        
-        // echo "<pre>";
-        // var_dump( $res );
-        // echo "</pre>";
-        // die;
-
-        if( !$res )
-        {
-             $obj = array(
-                    'result'=>null,
-                    "status" => 0,
-                    "desc"=>"无数据"
-                );
-        }
-        else
-        {
-            $obj = array(
-                'result'=>[],
-                "status" => 0,
-                "desc"=>"查询成功"
-            );
-
-            foreach( $res as $value )
-            {
-                array_push( $obj['result'] , $value );
-            }
-        }
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
-
-
+        return Db::table($this->table)->where(['dlsid'=>$dlsid])->select();
+        // return 
+        // dump( $res );die;        
     }
 
      /**
@@ -251,6 +198,22 @@ class GuanZhuMod extends Model
 
         return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
 
+
+    }
+
+
+    /**
+     * [exists 判断代理商和供货商的关注关系是否已经存在]
+     * @param  [type] $dlsid [description]
+     * @param  [type] $ghsid [description]
+     * @return [type]        [description]
+     */
+    public function exists( $dlsid , $ghsid )
+    {
+        $res = Db::table($this->table)->where([ 'dlsid'=>$dlsid , 'ghsid'=>$ghsid ])->select();
+        // dump( empty($res) );die;
+        // if( !empty($res) ) return true ; return false;die;
+        return !empty($res);
 
     }
 

@@ -115,16 +115,16 @@ class Photo extends Base
       /**
      * 本地图片地址加入数据库
      * @param [int] $[goodid] [<商品id>]
-     * @param [int] $[imgurls] [<图片名字数组>]
+     * @param [array] $[imgurls] [<图片名字数组>]
      * @return [type] [description]
      */
     // public function addLocalImage( $goodid ,  $imgurls)
-    public function addLocalImage( )
+    public function addLocalImage( $goodid,$urls )
     {
-        $req = Request::instance()->param();
+        // $req = Request::instance()->param();
 
         $modelObj  = new PhotoMod();
-        return $modelObj->addLocalImage( $req['goodsid'] , $req['shorturls'] );
+        return $modelObj->addLocalImage( $goodid , $urls );
         // return $modelObj->addLocalImage( 1 , ['5c074307c4388.jpg']);
         // $res = $modelObj->run( Config::get('ImageServerURL').'5c074307c4388.jpg' , Config::get('ImageServerURL').'5c074307c4490.jpg' );
         

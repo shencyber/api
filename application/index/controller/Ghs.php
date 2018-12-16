@@ -4,6 +4,7 @@ namespace app\index\controller;
 Use think\Controller;
 Use \think\Request;
 Use think\Config;
+Use think\Db;
 Use app\index\model\GhsMod;
 
 class Ghs extends Base
@@ -45,11 +46,15 @@ class Ghs extends Base
        
         $req = Request::instance()->param();
         $res = $ghs->login( $req['phone'] , $req['password'] );
-        // dump( $res );
+        // dump( $res );die;
         // return json_encode($res, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
         // return json_encode($res);
         return $res ;
     }
+
+
+
+
 
     /**
      * 获取供货商的姓名、手机号、供货商编号
@@ -60,24 +65,100 @@ class Ghs extends Base
     {
         $ghs  = new GhsMod();
         $req = Request::instance()->param();
-        return $ghs->getGhsInfo( $req['ghsid'] );
-      
+        $res = $ghs->getGhsInfo( $req['ghsid'] );
+        if( $res )
+        {
+            $obj =Array(
+                'status' => 0,
+                'desc'   => '获取供货商信息',
+                'result' => $res 
+
+            );
+        }
+        else
+        {
+            $obj =Array(
+                'status' => -1,
+                'desc'   => '未找到供货商',
+                'result' => ''
+
+            );   
+        }
+        return json_encode($obj ,JSON_UNESCAPED_UNICODE);die;
+    }
+
+    /**
+     * [getGhsByNo 根据供货商编号查找供货商]
+     * @return [type] [description]
+     */
+    public function searchGhsByNo()
+    {
+        $req = Request::instance()->param();
+        $res = Db::table('gonghuoshang')->where(['gno'=>$req['ghsno']])->field('id,name,gno')->select();
+        if( empty($res) )
+        {
+            $obj = Array(
+                'status' => 1,
+                'desc'   => '没有该供货商' ,
+                'result' => null
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'status' => 0,
+                'desc'   => '供货商信息' ,
+                'result' => $res
+            );
+        }
+
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+    }
+
+    /**
+     * [exists 查询供货商是否存在]
+     * @param  [type] $ghsid [供货商id]
+     * @return [type]        [description]
+     */
+    public function exists( $ghsid )
+    {
+        $ghs  = new GhsMod();
+        $res = $ghs->getGhsInfo( $ghsid );
+        return !empty($res);
+        // if( $res )
+        // {
+        //     $obj =Array(
+        //         'status' => 0,
+        //         'desc'   => '供货商存在',
+        //         'result' => '' 
+        //     );
+        // }
+        // else
+        // {
+        //     $obj =Array(
+        //         'status' => -1,
+        //         'desc'   => '未找到供货商',
+        //         'result' => ''
+        //     );   
+        // }
+        // return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+        
     }
 
 
 
      /**
-     * [createUserIdYP 生成又拍的userid]
+     * [授权 又拍授权]
      * @param  [type] $token   [description]
      * @param  [type] $opendId [description]
      * @return [type]          [description]
      */
-    public function createUserIdYP( )
+    public function auhorize( )
     {
 
         $req = Request::instance()->param();
         $ghs  = new GhsMod();
-        $res = $ghs->createUserIdYP( $req['token'] , $req['openid'] , Config::get('YPAppKey') ,$req['userid'] );
+        $res = $ghs->auhorize( $req['token'] , $req['openid'] , Config::get('YPAppKey') ,$req['userid'] );
         if(  $res )
         {
             $obj = Array(
@@ -201,6 +282,7 @@ class Ghs extends Base
         return json_encode( $obj  , JSON_UNESCAPED_UNICODE );
     }
 
+    
 }
 
 ?>

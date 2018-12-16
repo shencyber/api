@@ -2,6 +2,7 @@
 //订单控制器
 namespace app\index\controller;
 Use think\Controller;
+Use think\Request;
 Use app\index\model\OrdersMod;
 Use app\index\model\OrderDetailMod;
 Use app\index\model\GoodsMod;
@@ -21,40 +22,83 @@ class Orders extends Controller
      * @param [string] $address [<收件人地址>]
      * @param [float] $totalprice [<总价>]
      * @param [float] $totalfreight [总运费>]
-     * @param [array] $totalfreight [商品数组，包括商品id、商品单价、商品数量>]
+     * @param [array] $goods [商品数组，包括商品id、商品单价、商品数量>]
      * @return [type] [description]
      */
     // public function add( $ghsid,$ghsname,$dlsid,$receivername,$receiverphone,$address,$totalprice,$totalfreight   )
     public function add(   )
     {
-        // echo "add order DLS id = 1"；
+        $req = Request::instance()->param();
         $modelObj  = new OrdersMod();
         // 1、生成订单
-        $res = $modelObj->add($this->creareOrderCode(), 1,"张三",1,"收件人","15899636699","收件地址",200,0 );
+        $insertedId = $modelObj->add( 
+            $this->creareOrderCode(), 
+            $req['ghsid'],
+            $req['ghsname'],
+            $req['dlsid'],
+            $req['receivername'],
+            $req['receiverphone'],
+            $req['address'],
+            $req['totalprice'],
+            $req['totalfreight']
+            // $req['goods'] 
+        );
         
-        if( !$res ){return $res ; die;}
+        if( !$insertedId )
+        {
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '添加订单失败',
+                'result' => null 
+            );
+            return json_encode($obj , JSON_UNESCAPED_UNICODE) ; die;
+        }
+
 
         //2、生成订单详情
-        $orderDetailCon = controller( 'Orderdetail' );
-        $res = $orderDetailCon->addAll(  );
-        if( !$res ){return $res ; die;}
-        $goodsArr = array(
-            ["goodid"=>1,"unitprice"=>120,"amount"=>10],
-            ["goodid"=>2,"unitprice"=>120,"amount"=>20]
-        );
+        //
+        //$detModelObj  = new OrdersMod();
+        //$detModelObj->addAll();
+        //$req['goods']示例 [{goodid:1、unitprice:100、amount:3}]
+        // print_r( $req['goods'] );die;
+        // print_r( json_decode( $req['goods'] ,true ) );die;
+        $orderDetailMod = new OrderDetailMod();
+        $res_detailids = $orderDetailMod->addAll( $insertedId ,  $req['goods'] );  
+        // dump( $res );die;
+        // $arr = json_decode($res);
+        // dump( $arr[0] );
+        // die;
+        
+
+        if( !$res_detailids )
+        {
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '添加订单失败',
+                'result' => null 
+            );
+            return json_encode($obj , JSON_UNESCAPED_UNICODE) ; die;
+        }
+
+
+        // $goodsArr = array(
+        //     ["goodid"=>1,"unitprice"=>120,"amount"=>10],
+        //     ["goodid"=>2,"unitprice"=>120,"amount"=>20]
+        // );
 
         //2、更新GoodsMod的soldamount字段
         $goodObj = new GoodsMod();
+        $goodsArr = $req['goods'];
         foreach ($goodsArr as $index => $value) 
         {
             $res = $goodObj->updateGoodSoldAmount( $value['goodid'] , $value['amount'] );
             $resArr = json_decode( $res  ,  true );
             if( 0 != $resArr['status'] ){return $res ; die;}
         }
-
         $obj = array(
                 'status' => 0,
-                'desc'   => '订单生成成功'
+                'desc'   => '订单生成成功',
+                'result' => [ 'ordersId' => $insertedId , 'orderdetailIds'=>$res_detailids  ]
             );
 
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
@@ -65,25 +109,65 @@ class Orders extends Controller
     /**
      * 收款-待发货
      * @param  [int] $orderid [订单id]
+     * @param  [int] $actualprice [收款金额]
      * @return [type]          [description]
      */
     // public function shouKuan( $orderid )
     public function shouKuan(  )
     {
+        $req = Request::instance()->param();
+
         $modelObj  = new OrdersMod();
-        return $modelObj->updateOrderStatus( 3 , OrdersMod::DAI_FA_HUO );
+        $res = $modelObj->shouKuan( $req['orderid'] , $req['actualprice'] );
+        if( $res >=0  )
+        {
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '收款成功',
+                'result' => null
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'status' => -1 ,
+                'desc'   => '收款失败',
+                'result' => null
+            );  
+        }
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);
     }
+
 
     /**
      * 发货
      * @param  [int] $orderid [订单id]
+     * @param  [int] $express [订单号]
      * @return [type]          [description]
      */
-    // public function faHuo( $orderid )
-    public function faHuo(  )
+    public function fahuo( $orderid , $express )
     {
+        $req = Request::instance()->param();
+
         $modelObj  = new OrdersMod();
-        return $modelObj->updateOrderStatus( 3 , OrdersMod::YI_FA_HUO );
+        $res = $modelObj->fahuo( $req['orderid'] , $req['express'] );
+        if( $res >=0  )
+        {
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '保存成功',
+                'result' => null
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'status' => -1 ,
+                'desc'   => '保存失败',
+                'result' => null
+            );  
+        }
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -91,49 +175,28 @@ class Orders extends Controller
      * @param  [int] $orderid [订单id]
      * @return [type]          [description]
      */
-    public function quXiao(  )
-    {
+    public function quxiao(  )
+    {   
+        $req = Request::instance()->param();
         $modelObj  = new OrdersMod();
-        $res = $modelObj->updateOrderStatus( $_POST['orderid'] , OrdersMod::YI_QU_XIAO );
-        if( !$res ){return $res ; die;} 
-
-        //1、查询订单详情内的商品信息
-
-        $modelObj  = new OrderDetailMod();
-        $details = $modelObj->getDetail( $_POST['orderid']  );
-
-        //die;
-
-        //2、更新GoodsMod的soldamount字段
-        // $goodsArr = array(
-        //     ["goodid"=>1,"unitprice"=>120,"amount"=>-2],
-        //     ["goodid"=>2,"unitprice"=>120,"amount"=>-2]
-        // );
-        $goodsArr = [] ;
-        $details_arr = json_decode( $details , true );
-        // print_r( $details_arr );
-        if( 0 == $details_arr['status'] && $details_arr['result'] )
+        $res = $modelObj->cancel( $req['orderid'] );
+        if( $res >=0  )
         {
-            foreach( $details_arr['result'] as $key=>$value )
-            {
-                array_push( $goodsArr , ["goodid"=>$value['goodid'],"amount"=>$value['amount']] );
-                
-            }
+            $obj = Array(
+                'status' => 0 ,
+                'desc'   => '取消成功',
+                'result' => null
+            );
         }
-
-        $goodObj = new GoodsMod();
-        foreach ($goodsArr as $index => $value) 
+        else
         {
-            $res = $goodObj->updateGoodSoldAmount( $value['goodid'] , $value['amount'] );
-            if( !$res ){return $res ; die;}
+            $obj = Array(
+                'status' => -1 ,
+                'desc'   => '取消失败',
+                'result' => null
+            );  
         }
-
-        $obj = array(
-            'status' => 0,
-            'desc'   => '订单取消成功'
-        );
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);
     }
 
 

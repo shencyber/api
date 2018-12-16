@@ -101,22 +101,23 @@ class GhsMod extends Model
             // print_r("gonghuoshanginfo");
             // dump($res);
 
-            $res_arr = json_decode($res,true);
-            if( 0!=$res_arr['status'] )
-            {
-                $obj = array(
-                    'result'=>null,
-                    "status" => -1,
-                    "desc"=>"获取供货商信息失败"   //插入数据错误
-                );       
-            }
-            else
-            {
-                $obj['result']['name'] =$res_arr['result']['name']; 
-                $obj['result']['phone'] =$res_arr['result']['phone']; 
-                $obj['result']['gno'] =$res_arr['result']['gno']; 
-            }
+            // $res_arr = json_decode($res,true);
+            // if( 0!=$res_arr['status'] )
+            // {
+            //     $obj = array(
+            //         'result'=>null,
+            //         "status" => -1,
+            //         "desc"=>"获取供货商信息失败"   //插入数据错误
+            //     );       
+            // }
+            // else
+            // {
+                $obj['result']['name'] =$res[0]['name']; 
+                $obj['result']['phone'] =$res[0]['phone']; 
+                $obj['result']['gno'] =$res[0]['gno']; 
+            // }
         }
+        
         
        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
       
@@ -126,15 +127,16 @@ class GhsMod extends Model
     /**
      * 根据供货商id获取供货商的姓名、手机号、供货商编号
      * @param  [type] $modelObjid [description]
-     * @return [type]        [description]
+     * @return [type]        [Array]
      */
     public function getGhsInfo( $ghsid )
     {
         // $modelObj = model('GhsMod');
        
         // $res = $modelObj->where( [ 'id'=>$ghsid ])->column( 'name,phone,gno'    ) ;
-        $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno,youpaiuserid')->select() ;
-        // dump( $res );die;
+        $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno,youpaiuserid,youpaiopenid,youpaitoken')->select() ;
+
+        return $res ;die;
          if( !$res ) 
         {
             $obj = array(
@@ -209,7 +211,7 @@ class GhsMod extends Model
         $output = json_decode( curl_exec( $ch ) , true   );
         curl_close($ch);
         // print_r('jie');
-        // dump( $output );
+        dump( $output );
         // die;
         // 解析返回结果
         $useridYP = $output['data']['account']['userId'] ;

@@ -28,12 +28,12 @@ class OrderDetail extends Controller
 
     /**
      * 添加多条商品信息
-     * @param [type] $orderid  [订单id]
-     * @param [type] $goodsArr [商品信息  字段 goodid、unitprice、amount]
+     * @param [int] $orderid  [订单id]
+     * @param [二维数组] $goodsArr [商品信息  字段 goodid、unitprice、amount]
      */
-    // public function addAll( $orderid , $goodsArr  )
-    public function addAll(   )
+    public function addAll(  $orderid , $goods )
     {
+        dump( $goods );die;
         // echo "add order DLS id = 1"；
         $modelObj  = new OrderDetailMod();
         $res = $modelObj->addAll( 1 , [["goodid"=>1,"unitprice"=>120,"amount"=>10],["goodid"=>2,"unitprice"=>120,"amount"=>20]] );

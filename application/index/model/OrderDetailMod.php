@@ -67,6 +67,7 @@ class OrderDetailMod extends Model
      */
     public function addAll( $orderid , $goodsArr )
     {
+        // dump( $goodsArr );die;
         $modelObj = model('OrderDetailMod');
         foreach( $goodsArr as $index=>$good )
         {
@@ -74,31 +75,17 @@ class OrderDetailMod extends Model
         }
 
         $res = $modelObj->saveAll( $goodsArr );
-
-        return $res ;die;
-        if( $res !== false )
-        {
-            $obj = array( 
-                "status" => 0 , 
-                "result" => [] ,
-                "desc" => "添加成功"
-            );
-
-           
-
-
-        }
+        if( !$res ) return $res;
         else
-        {
-            $obj = array( 
-                "status" => -1 ,  //插入数据错误
-                "desc" => "添加失败"
-            );
+        {   
+            $obj = [] ;
+            foreach ($res as $key => $value) 
+            {
+                array_push($obj, $value['id']);
+            }
 
+            return $obj ;
         }
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;
-
     }
 
     /**

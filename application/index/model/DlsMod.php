@@ -130,6 +130,7 @@ class DlsMod extends Model
        
         $res = $modelObj->where( [ 'id'=>$dlsid ])->column( 'phone,nickname','avatar'    ) ;
 
+        return $res ;die;
          if( !$res ) 
         {
             $obj = array(

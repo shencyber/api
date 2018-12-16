@@ -52,7 +52,9 @@ class OrdersMod extends Model
 
 
         $res = $modelObj->save();
-        
+
+        return $res  ;die ;
+        dump($res);   die;  
         if( $res !== false )
         {
             $obj = array( 
@@ -79,54 +81,91 @@ class OrdersMod extends Model
        
     }
 
+
+    /**
+     * 收款-待发货
+     * @param  [int] $orderid [订单id]
+     * @param  [int] $actualprice [收款金额]
+     * @return [type]          [description]
+     */
+    public function shouKuan( $orderid , $actualprice )
+    {
+
+        return Db::table($this->table)->where(['id'=>$orderid])->update(['actualprice'=>$actualprice,'status'=>OrdersMod::DAI_FA_HUO]);
+        
+    }
+
+
+   /**
+     * 发货
+     * @param  [int] $orderid [订单id]
+     * @param  [int] $express [订单号]
+     * @return [type]          [description]
+     */
+    public function fahuo( $orderid , $express )
+    {
+
+        return Db::table($this->table)->where(['id'=>$orderid])->update(['expressno'=>$express,'status'=>OrdersMod::YI_FA_HUO]);
+    }
+
+     /**
+     * 取消
+     * @param  [int] $orderid [订单id]
+     * @return [type]          [description]
+     */
+    public function cancel( $orderid )
+    {
+        return Db::table($this->table)->where(['id'=>$orderid])->update(['status'=>OrdersMod::YI_QU_XIAO]);
+    }
+
     /**
      * 更新订单状态
      * @param  [int] $orderid [订单di]
      * @param  [int] $status [订单状态]
      * @return [type]            [description]
      */
-    public function updateOrderStatus( $orderid , $status )
-    {
+    // public function updateOrderStatus( $orderid , $status )
+    // {
 
-        $modelObj = model('OrdersMod');
+    //     $modelObj = model('OrdersMod');
 
-         // 1、查询该关注记录是否已经存在
-        $res = $modelObj->where([ 'id'=>$orderid  ] )->find() ; 
+    //      // 1、查询该关注记录是否已经存在
+    //     $res = $modelObj->where([ 'id'=>$orderid  ] )->find() ; 
 
-        if( !$res )
-        {
-            $obj = array( 
-                "status" => -1 , 
-                "desc" => "没有该订单"
-            );
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;   
+    //     if( !$res )
+    //     {
+    //         $obj = array( 
+    //             "status" => -1 , 
+    //             "desc" => "没有该订单"
+    //         );
+    //         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;   
 
-        }
+    //     }
 
 
-        $res = $modelObj->save(['status'  => $status ],['id' => $orderid]);
+    //     $res = $modelObj->save(['status'  => $status ],['id' => $orderid]);
 
-        if( !$res ) 
-        {
-            $obj = array(
-                'result'=>null,
-                "status" => -1,
-                "desc"=>"更新失败"   
-            );
-        }
-        else
-        {
-            $obj =  array(
-                'result'=>null,
-                "status" => 0,
-                "desc"=>"更新成功"   
-            );
-        }
+    //     if( !$res ) 
+    //     {
+    //         $obj = array(
+    //             'result'=>null,
+    //             "status" => -1,
+    //             "desc"=>"更新失败"   
+    //         );
+    //     }
+    //     else
+    //     {
+    //         $obj =  array(
+    //             'result'=>null,
+    //             "status" => 0,
+    //             "desc"=>"更新成功"   
+    //         );
+    //     }
 
-       return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
-        die;
+    //    return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
+    //     die;
         
-    }
+    // }
 
 
     /**
