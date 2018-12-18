@@ -248,40 +248,29 @@ class GoodsMod extends Model
     * @param  [int] $goodid [商品id]
     * @return [type]          [description]
     */
-    public function getGoodsById( $goodid )
+    public function getGoodsById( $gid )
     {
-        
-        // $modelObj = model('GoodsMod');
+        /**
+         * $list  [ 
+         *     [0] =&gt; array(4) {
+                    ["id"] =&gt; NULL
+                    ["name"] =&gt; NULL
+                    ["unitprice"] =&gt; NULL
+                    ["urls"] =&gt; NULL
+                  },
 
-        // $list = $modelObj->all( $goodids );
-        $list = Db::table('goods')->where(['id'=>$goodid])->select();
-        
-        if( !$list )
-        {
-            $obj = array(
-                'result'=>null,
-                "status" => 0,
-                "desc"=>"没找到该商品" 
-            );
-        }
-        else
-        {
-            $obj = array(
-                'result'=>$list[0],
-                "status" => 0,
-                "desc"=>"找到了" 
-            );
+                [1] =&gt; array(4) {
+                    ["id"] =&gt; NULL
+                    ["name"] =&gt; NULL
+                    ["unitprice"] =&gt; NULL
+                    ["urls"] =&gt; NULL
+                  }
 
-            // foreach($list as $key=>$good)
-            // {
-            //     array_push( $obj['result'] , $good );
-            // }
-
-            //开始找对应的图片
-            
-        }
-    
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+         *   ]
+         * 
+         */
+        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.unitprice,group_concat(p.url) urls,g.desc')->select();
+        return $list;
     
     }
 

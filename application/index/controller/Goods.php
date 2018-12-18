@@ -190,64 +190,40 @@ class Goods extends Base
     {
 
         $req = Request::instance()->param();
-        // $goodsids = json_decode( $req['goodsids'] , true );
-
-        // print_r( $goodsids );
-        // if( !is_array( $goodsids ) ) 
-        // {
-        //   $obj = Array(
-
-        //         'result'=>null,
-        //         "status" => -2,
-        //         "desc"=>"参数格式错误" 
-        //   );
-        //     return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
-        // } 
 
         $modelObj  = new GoodsMod();
         //1、获取商品信息
-        $goodsJson =   $modelObj->getGoodsById( $req['goodsid'] ) ;
-        $goodsArr  =   json_decode( $goodsJson , true );
-        if( 0 != $goodsArr['status'] || !$goodsArr['result'] )
+        $list =   $modelObj->getGoodsById( $req['gid'] ) ;
+        foreach( $list as $key=>$value)
         {
-          
-            return $goodsJson ;die; 
+          if(  $value['id'] == null)
+          {
+            unset( $list[$key] );
+          }
+          else
+          {
+            $tmp_urls = explode( "," , $value['urls'] ) ;
+            foreach( $tmp_urls as $index=>$val )
+            {
+                $tmp_urls[$index] = Config::get('ImageBaseURL').$val;   
+            }
+            $list[$key]['urls'] = $tmp_urls ;
+          }
+        }
+       
+
+        if(  empty($list) )
+        {
+          $obj = [ 'status'=>0 , 'desc'=>'无数据' , 'result'=>[] ];
+
+        }
+        else
+        {
+          $obj = [ 'status'=>0 , 'desc'=>'查询成功' , 'result'=>$list[0] ];
         }
 
-        //2、 根据商品信息获取图片信息
-        // foreach( $goodsArr['result'] as $index=>$good )
-        // {
-            //找对应的商品图片
-            $photoObj = controller('photo');
-            $photoJson = $photoObj->getImagesByGoodId( $req['goodsid'] );
-            $photoArr = json_decode($photoJson , true);
-            // print_r("输出照片 ");dump( $photoArr );die;
-        // dump($goodsArr);
-        // die;
-        // print_r("-------------------");
-        // dump( $photoJson );  //['' , '']
-            if( 0==$photoArr['status'] &&  $photoArr['result']  )
-            {
-              // foreach( $photoArr['result'] as $subindex=>$url )
-              $goodsArr['result']['shortUrls'] = [] ;
-              $goodsArr['result']['longUrls'] = [] ;
-
-              // dump( $goodsArr );
-              // print_r("-------------------");
-              foreach( $photoArr['result'] as $url )
-              {
-                array_push( $goodsArr['result']['shortUrls'] , $url );
-                array_push( $goodsArr['result']['longUrls'] , Config::get('ImageBaseURL').$url );
-                  // $photoArr['result'][$subindex] =  Config::get('ImageBaseURL').$url ;
-              }
-              // $goodsArr['result']['urls'] = $photoArr['result'] ;
-            }
-            
-            // $goodsArr['result']['urls'] = $photoArr['result'] ;
-            // die;
-        // }
-            // dump( $goodsArr );die;
-        return json_encode( $goodsArr , JSON_UNESCAPED_UNICODE );die;
+       
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
 
     }
 
