@@ -22,7 +22,7 @@ class Orders extends Controller
      * @param [string] $address [<收件人地址>]
      * @param [float] $totalprice [<总价>]
      * @param [float] $totalfreight [总运费>]
-     * @param [array] $goods [商品数组，包括商品id、商品单价、商品数量>]
+     * @param [array] $goods [商品数组，包括商品id-gid、商品单价-unitprice、商品数量-amount>]
      * @return [type] [description]
      */
     // public function add( $ghsid,$ghsname,$dlsid,$receivername,$receiverphone,$address,$totalprice,$totalfreight   )
