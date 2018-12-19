@@ -103,39 +103,41 @@ class PhotoMod extends Model
     /**
      * 根据图片的hash值，获取对应的商品id数组
      * @param  [String] $hash [图片hash值]
-     * @return [Array]       [商品对应的id数组]
+     * @return [Array]       [商品对应的id数组 或者是空数组 eg: []  ,  [1] ]
      */
     public function getGoodsIdByImgHash( $hash )
     {
         $modelObj = model('PhotoMod');
 
-         $res = $modelObj->where(["code"=>$hash])->group('goodid')->column('goodid');
+        // $res = $modelObj->where(["code"=>$hash])->group('goodid')->column('goodid');
+        // return $res ;
+        return $modelObj->where(["code"=>$hash])->group('goodid')->column('goodid');
+        // print_r( "gettte" );
+        // print_r( $res ) ;
+        // die;
+        // if( !$res )
+        // {
+        //      $obj = array(
+        //             'result'=>null,
+        //             "status" => 0,
+        //             "desc"=>"图片未找到"
+        //         );
+        // }
+        // else
+        // {
+        //     $obj = array(
+        //         'result'=>[],
+        //         "status" => 0,
+        //         "desc"=>"查询成功"
+        //     );
 
-        
+        //     foreach( $res as $value )
+        //     {
+        //         array_push( $obj['result'] , $value );
+        //     }
+        // }
 
-        if( !$res )
-        {
-             $obj = array(
-                    'result'=>null,
-                    "status" => 0,
-                    "desc"=>"图片未找到"
-                );
-        }
-        else
-        {
-            $obj = array(
-                'result'=>[],
-                "status" => 0,
-                "desc"=>"查询成功"
-            );
-
-            foreach( $res as $value )
-            {
-                array_push( $obj['result'] , $value );
-            }
-        }
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+        // return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
     }
 
     /**

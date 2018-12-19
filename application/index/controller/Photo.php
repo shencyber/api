@@ -138,12 +138,14 @@ class Photo extends Base
      * @param [int] $[ghsid] [<供货商id>]
      * @return [type] [description]
      */
-    public function searchByImage(  )
-    {
+    public function searchByImage( $file )
+    {   
+
         $modelObj  = new PhotoMod();
+        
 
         // 1、获取图片对象
-        $file = request()->file('image');
+        // $file = request()->file('image');
         
 
         //2、 保存图片，移动到框架应用根目录/public/uploads/tmp 目录下
@@ -154,6 +156,27 @@ class Photo extends Base
             {
                 $imgName = $info->getFilename();
                 $hash =  $modelObj->getHashValue( Config::get('ImageTmpURL').$imgName );
+
+                //将临时图片删除，节省空间
+                unlink ( Config::get('ImageTmpURL').$imgName );
+
+                // print_r( $hash );
+                //3、在数据库内查询相同的图片对应的商品id
+                // return  $modelObj->getGoodsIdByImgHash('1111111111111111111111111111111111111111111111111111111111111111');die;
+                $res = $modelObj->getGoodsIdByImgHash($hash);
+                if( empty( $res ) )
+                {
+                    $obj = [ "status"=>1,'desc'=>'未找到','result'=>[] ];
+                }
+                else
+                {
+                    $obj = [ "status"=>0,'desc'=>'找到了','result'=>$res ];
+
+                }
+                return json_encode($obj , JSON_UNESCAPED_UNICODE);
+
+                die;
+
 
                 // $imagesHash = $modelObj->getImageByHash( $hash );
                 // echo "hash".$imagesHash ;
@@ -170,16 +193,14 @@ class Photo extends Base
             else
             {
                 // 上传失败获取错误信息
-                echo $file->getError();
+                return $file->getError();
             }
         }
 
-         //3、在数据库内查询相同的图片对应的商品id
-         // return $modelObj->getGoodsIdByImgHash('1111111111111111111111111111111111111111111111111111111111111111');die;
-         return $modelObj->getGoodsIdByImgHash($hash);die;
+         
 
          //4、调用Goods控制器，根据goodid查询商品信息
-         $goodObj = controller('Good');
+         // $goodObj = controller('Good');
 
          
     }

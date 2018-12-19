@@ -244,15 +244,10 @@ class GoodsMod extends Model
     }
 
    /**
-    * 根据商品id获取对应的商品数据
+    * 根据商品id获取对应的商品数据和photo信息
     * @param  [int] $goodid [商品id]
-    * @return [type]          [description]
-    */
-    public function getGoodsById( $gid )
-    {
-        /**
-         * $list  [ 
-         *     [0] =&gt; array(4) {
+    * @return [array]       $list  [ 
+               [0] =&gt; array(4) {
                     ["id"] =&gt; NULL
                     ["name"] =&gt; NULL
                     ["unitprice"] =&gt; NULL
@@ -267,52 +262,47 @@ class GoodsMod extends Model
                   }
 
          *   ]
-         * 
-         */
+    */
+    public function getGoodsById( $gid )
+    {
+       
         $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.unitprice,group_concat(p.url) urls,g.desc')->select();
         return $list;
+
     
     }
 
 
     /**
-    * 根据商品id获取对应的商品数据
-    * @param  [array] $goodids [商品id]
-    * @return [type]          [description]
+    * 根据多个商品id获取对应的商品数据
+    * @param  [array] $goodsids [商品id]
+    * @return [array]          [[gid,gname,unitprice,desc,ghsid,ghsname] , [gid,gname,unitprice,desc,ghsid,ghsname]]
     */
-    public function getGoodsByIds( $goodids )
+    public function getGoodsByIds( $goodsids )
     {
-        
-        $modelObj = model('GoodsMod');
+        // print_r( $goodsids );
 
-        $list = $modelObj->all( $goodids );
-        
-        if( !$list )
-        {
-            $obj = array(
-                'result'=>null,
-                "status" => 0,
-                "desc"=>"没找到该商品" 
-            );
-        }
-        else
-        {
-            $obj = array(
-                'result'=>array(),
-                "status" => 0,
-                "desc"=>"找到了" 
-            );
+        $list = Db::table('goods')->alias('g')->join('gonghuoshang ghs' , 'g.ghsid=ghs.id' , 'left' )->where('g.id' ,'in' , $goodsids )->field('g.id,g.name,g.desc,g.unitprice,ghs.id as ghsid,ghs.name as ghsname')->select();
+        return $list ;
+        // $list = Db::table('goods')->alias('g')->join('gonghuoshang ghs' , 'g.ghsid=ghs.id' , 'left' )->where('g.id' ,'in' , $goodsids )->field('group_concat(g.id) gids,group_concat(g.name) gnames,group_concat(g.desc) gdescs,group_concat(g.unitprice) gunitprices,ghs.id as ghsid,ghs.name as ghsname')->group('g.ghsid')->select();
 
-            foreach($list as $key=>$good)
-            {
-                array_push( $obj['result'] , $good );
-            }
+        // foreach( $list as $key=>$val )
+        // {
+        //     $list[$key]['gids'] = explode("," , $val['gids']);
+        //     $list[$key]['gnames'] = explode("," , $val['gnames']);
+        //     $list[$key]['gunitprices'] = explode("," , $val['gunitprices']);
+        //     $list[$key]['goods'] = array();
+        // }
 
-            //开始找对应的图片
-            
-        }
-    
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+        // foreach( $list as $key=>$val )
+        // {
+        //     // array_push( $list[$key]['goods'] ,  ); 
+        // }
+
+        // dump( $list );die;
+        // return $list;
+        // die;
+      
     
     }
     

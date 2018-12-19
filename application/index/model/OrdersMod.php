@@ -53,7 +53,7 @@ class OrdersMod extends Model
 
         $res = $modelObj->save();
 
-        return $res  ;die ;
+        return $modelObj->id  ;die ;
         dump($res);   die;  
         if( $res !== false )
         {

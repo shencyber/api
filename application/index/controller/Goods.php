@@ -280,6 +280,82 @@ class Goods extends Base
 
     }
 
+    /**
+     * [searchGoodsByImage 根据用户上传的图片查找对应的商品及其供货商信息]
+     * @return [array] [status 0 - 找到  1-未找到]
+     */
+    public function searchGoodsByImage()
+    {      
+        $req = Request::instance();
+        $file = $req->file('image');
+        $photoCon = controller( 'photo' );
+        $res = $photoCon->searchByImage( $file );
+        // dump( $res );
+        $res_arr = json_decode($res , true);
+        if( 0 != $res_arr['status'] ) 
+        {
+            return $res;die;
+        }
+        else
+        {
+            $modObj = model('GoodsMod');
+            // $goodsids = $res_arr['result'];
+            // dump( $goodsids );
+            //1、根据商品id找到商品详情和对应的供货商信息
+            // $res = $modObj->getGoodsByIds( [ 222] );
+            $res = $modObj->getGoodsByIds( $res_arr['result'] );
+            // dump( $res );
+            if( empty( $res ) )
+            {
+                return json_encode(Array( 'status'=>1 , 'desc'=>'未找到对应的商品信息','result'=>[] ) , JSON_UNESCAPED_UNICODE);die;
+            }
+            else
+            {
+               foreach( $res as $key=>$val )
+                {
+                    $res[$key]['goods'] = array( 'id'=>$val['id'],'name'=>$val['name'],'unitprice'=>$val['unitprice'],'desc'=>$val['desc']  );
+                    unset( $res[$key]['id'] );
+                    unset( $res[$key]['name'] );
+                    unset( $res[$key]['unitprice'] );
+                    unset( $res[$key]['desc'] );
+                    
+                }
+
+                // print_r( $res );die;
+
+                $ghsids =array();
+                foreach( $res as $key=>$val ){ array_push($ghsids , $val['ghsid']); }
+                $ghsids = array_unique($ghsids );
+                $ghsids_obj = array();
+                foreach( $ghsids as $val)
+                {
+                    array_push( $ghsids_obj , array( 'ghsid'=>$val , 'ghsname'=>'','goods'=>array() ) );    
+                }
+                // print_r( $ghsids_obj );die;
+                foreach( $res as $key=>$val )
+                {
+                    foreach( $ghsids_obj as $subkey=>$subval )
+                    {
+                        if( $subval['ghsid'] == $val['ghsid'] )
+                        {
+                            $ghsids_obj[$subkey]['ghsname'] = $val['ghsname'];
+                            array_push($ghsids_obj[$subkey]['goods'] , $val['goods'] ); 
+                        }    
+                    }
+                    
+                }
+
+                // dump( $ghsids_obj );die;
+                
+                return json_encode( Array('status'=>0 , 'desc'=>'找到对应的商品信息','result'=>$ghsids_obj ) , JSON_UNESCAPED_UNICODE);die;
+                
+            }
+
+        }
+
+    }
+
+
 
 
   
