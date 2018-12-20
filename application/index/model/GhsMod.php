@@ -211,17 +211,28 @@ class GhsMod extends Model
         $output = json_decode( curl_exec( $ch ) , true   );
         curl_close($ch);
         // print_r('jie');
-        dump( $output );
+        // dump( $output );
         // die;
         // 解析返回结果
         $useridYP = $output['data']['account']['userId'] ;
         // $useridYP = $output['data']['account']['userId'] ;
         // $useridYP = $output['data']['account']['userId'] ;
 
-        // 更新数据库信息,包括youpaiuserid，youpaiopenid ,youpaitoken
-        $res = Db::table($this->table)->where(['id'=>$userid])->update(['youpaiuserid'=>$useridYP,'youpaiopenid'=>$openId,'youpaitoken'=>$token]);
+        // 更新数据库信息,包括youpaiuserid，youpaiopenid ,youpaitoken,begin,end
+        //token开始时间
+        $begin = date("Y-m-d H:i:s");  
+        //token过期时间  6天12小时
+        $end = mktime( date("H")+10 ,date("i"), date("s") , date("m") ,date("d")+6 ,date("Y") );
+        $end = date( "Y-m-d H:i:s" , $end);
+        // echo $now;
+        // echo "</br>";
+        // echo date("Y-m-d H:i:s" , $fut);
+        $res = Db::table($this->table)->where(['id'=>$userid])->update(['youpaiuserid'=>$useridYP,'youpaiopenid'=>$openId,'youpaitoken'=>$token,'begin'=>$begin,'end'=>$end]);
         return !!$res ;
-    }   
+    }  
+
+
+    
 
     /**
      * 添加供货商的又拍信息，userid openid  token
@@ -285,16 +296,32 @@ class GhsMod extends Model
 
 
     /**
-     * 判断供货商是否有又拍的userid
+     * 判断供货商token是否过期
      * @param  [int]  $ghsid [description]
      * @return boolean        [description]
      */
-    public function hasUseridYP( $ghsid )
+    public function isExpireTokenYP( $ghsid )
     {
-        $res = DB::table('gonghuoshang')->where(['id'=>$ghsid])->field('youpaiuserid')->select();
+        $res = DB::table($this->table)->where(['id'=>$ghsid])->field('youpaiuserid,end')->select();
+        // dump( $res );
+        if( empty($res) ) return false;
+        // else print_r('b');
         // dump( $res );die;
-        return !!$res[0]['youpaiuserid'] ;
-        
+        // return !!$res[0]['youpaiuserid'] ;
+        $now = date('Y-m-d H:i:s');
+        $end = $res[0]['end'];
+        // print_r( $now );
+        // print_r( $end );
+        if( $now < $end ) return true ;
+        else return false ;
+    
+    
+
+        // $now = date("Y-m-d H:i:s");
+
+
+
+
     }
 
     /**

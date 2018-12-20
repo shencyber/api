@@ -180,6 +180,9 @@ class Ghs extends Base
     }
 
 
+    
+
+
     /**
      * 添加供货商的又拍信息，userid openid  token
      * @param  [int] $ghsid    [供货商id]
@@ -212,30 +215,30 @@ class Ghs extends Base
     }
 
     /**
-     * 判断用户是否有又拍的userid
+     * 判断用户是否有又拍的userid并且token是否过期
      * @param  [int]  $ghsid [description]
      * @return boolean        [description]
      */
-    public function hasUseridYP( $ghsid )
+    public function isExpireTokenYP( $ghsid )
     {
         $req = Request::instance()->param();
         $ghs  = new GhsMod();
-        $res = $ghs->hasUseridYP( $req['ghsid'] );
+        $res = $ghs->isExpireTokenYP( $req['ghsid'] );
         if( $res )
         {
             $obj = Array(
                 'status'=>0,
-                'desc'=>"账号存在",
-                'result'=>null
+                'desc'=>"token正常",
+                'result'=>$res
             );
 
         }
         else
         {
             $obj = Array(
-                'status'=>1,
-                'desc'=>"账号不存在",
-                'result'=>null
+                'status'=>0,
+                'desc'=>"账号不存在、或token已过期",
+                'result'=>$res
             );            
         }
         return json_encode($obj , JSON_UNESCAPED_UNICODE) ;

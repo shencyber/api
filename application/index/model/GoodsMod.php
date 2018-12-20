@@ -44,7 +44,7 @@ class GoodsMod extends Model
             'freighttemplateid'=>$freighttemplateid,
             'source'=>GoodsMod::SOURCE_LOCAL,
             'status'=>GoodsMod::SHANG_JIA,
-            'uptime'  => date('Y-m-d H:i:m'),
+            'uptime'  => date('Y-m-d H:i:s'),
             ] );
 
         $res = $modelObj->save();
@@ -98,7 +98,7 @@ class GoodsMod extends Model
 
         $res = $modelObj->save([
             'status'  => GoodsMod::SHANG_JIA,
-            'uptime'  => date('Y-m-d H:i:m'),
+            'uptime'  => date('Y-m-d H:i:s'),
             ],['id' => $goodsid]);
 
         if( !$res ) 
@@ -150,7 +150,7 @@ class GoodsMod extends Model
 
         $res = $modelObj->save([
             'status'  => GoodsMod::XIA_JIA ,
-            'downtime'  => date('Y-m-d H:i:m'),
+            'downtime'  => date('Y-m-d H:i:s'),
             ],['id' => $goodsid]);
 
         if( !$res ) 
