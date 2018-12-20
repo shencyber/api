@@ -31,7 +31,7 @@ class Youpai extends Base
         // 1\判断是否已授权或者token是否过期
         $ghs  = new GhsMod();
         $res = $ghs->isExpireTokenYP( $req['ghsid'] );
-        
+        // dump($res);
 
         if( !$res )
         {
@@ -60,6 +60,7 @@ class Youpai extends Base
             $arr = array( $token , '/category/openId=' , $openId , Config::get('YPAppKey') );
             $sign = md5( join("" , $arr) ) ;
             $requestUrl = Config::get('YPApi').'category?token='.$token.'&sign='.$sign.'&openId='.$openId ;
+            
             $ch = curl_init();
 
             curl_setopt( $ch , CURLOPT_URL ,  $requestUrl );
@@ -67,8 +68,18 @@ class Youpai extends Base
             curl_setopt( $ch , CURLOPT_HEADER , 0);
             $output = json_decode( curl_exec( $ch ) , true   );
             curl_close($ch);
+            // dump( $output );
+            if( !empty($output['code']) && 40003 ==  $output['code'] )
+            {
+                $obj = Array(
+                        'status'=>1,
+                        'desc'=>"禁止访问",
+                        'result'=>[]
+                );   
+                return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+            }
             $catarr = $output['data']; 
-            // dump( $output );die;
+            // dump($catarr);die;
             /**
              * 示例{
             "id": 515599,
@@ -82,19 +93,31 @@ class Youpai extends Base
                 'desc'   => '获取商品信息成功',
                 'result' => array()
             );
-
-
+            // print_r("fenlei");
+            // dump( $catarr[2] );
             $totalLength = 6 ;
+            // $alb = $this->getAlbumByCatId( $catarr[2]['id'] ,  $token , $openId  );die;
+            // die;
             foreach( $catarr as $key => $val )
             {
+                // if( 0 == $val['albumNumber'] )
+                // {
+                //     dump( $val );
+                //     $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
+                // }
+                if( $val['albumNumber'] > 0 )
+                {
 
-                $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
-                // print_r( $val['id'] );
-                // dump($alb);
-                if( count( $alb ) > $totalLength ) 
-                    array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>array_slice($alb , 0 , $totalLength) ) );
-                else
-                    array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>$alb) );
+                    $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
+        
+                
+                    if( sizeof( $alb ) > $totalLength ) 
+                        array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>array_slice($alb , 0 , $totalLength) ) );
+                    else
+                        array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>$alb) );
+            
+                }
+
             }
 
 
@@ -135,11 +158,43 @@ class Youpai extends Base
         // $output = curl_exec( $ch ) ;
         $output = json_decode( curl_exec( $ch ) , true   );
         curl_close($ch);
-        // dump( $output['data'] );
-        $data = $output['data'];
+        // print_r( "--------------------" );
+        // print_r("album".$catId);
+        // dump( $output );
+        // print_r( "--------------------" );
+        // die;
+        // print_r("fenli");
+        // $data = $output['data'];
+        if( array_key_exists('list',$output['data'] )  )
+        {
+            if( sizeof( $output['data']['list'] ) > 0 )
+            {
+                $data = $output['data']['list'];
+            }
+            else
+            {
+                return ;
+            }
+        }
+        else
+        {
+            $data = $output['data'];
+        } 
+        // {
+        // } 
+        // else
+        // {
+        //     $data = $output['data']['list'];
+        // }
+
+        // $data = $output['data']['list'];
+        // dump( $data );die;
         foreach( $data as $key=>$val )
         {
+            // print_r( $val['cover'] );
+            // print_r( $data[$key]['cover'] );
             $data[$key]['cover'] = Config::get('YPImageBaseUrl').$val['cover'];
+            // $data[$key]['cover'] = join("" ,  array(Config::get('YPImageBaseUrl') , $data[$key]['cover']) );
             // print_r( $data[$key]['cover'] );
         }
         return $data;

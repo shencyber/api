@@ -137,31 +137,31 @@ class GhsMod extends Model
         $res = Db::table('gonghuoshang')->where( [ 'id'=>$ghsid ])->field( 'name,phone,gno,youpaiuserid,youpaiopenid,youpaitoken')->select() ;
 
         return $res ;die;
-         if( !$res ) 
-        {
-            $obj = array(
-                     'result'=>null,
-                    "status" => -1,
-                    "desc"=>"用户未找到"
-                );
+        //  if( !$res ) 
+        // {
+        //     $obj = array(
+        //              'result'=>null,
+        //             "status" => -1,
+        //             "desc"=>"用户未找到"
+        //         );
 
-        }
-        else
-        {
+        // }
+        // else
+        // {
 
-            $obj = array(
-                'result'=>$res[0],
-                "status" => 0,
-                "desc"=>"查询成功"
-            );
+        //     $obj = array(
+        //         'result'=>$res[0],
+        //         "status" => 0,
+        //         "desc"=>"查询成功"
+        //     );
 
-            // print_r('供货商信息');
-            // dump( $obj );die;
-            return json_encode( $obj , JSON_UNESCAPED_UNICODE );
+        //     // print_r('供货商信息');
+        //     // dump( $obj );die;
+        //     return json_encode( $obj , JSON_UNESCAPED_UNICODE );
 
-        }
+        // }
         
-        die;
+        // die;
     }
 
     /**
@@ -298,7 +298,7 @@ class GhsMod extends Model
     /**
      * 判断供货商token是否过期
      * @param  [int]  $ghsid [description]
-     * @return boolean        [description]
+     * @return boolean        [true-未过期 false-已过期]
      */
     public function isExpireTokenYP( $ghsid )
     {
