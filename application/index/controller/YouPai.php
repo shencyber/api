@@ -4,33 +4,58 @@ namespace app\index\controller;
 Use think\Controller;
 Use think\Config;
 Use \think\Request;
+Use \think\Db;
 Use app\index\model\GhsMod;
 
 class Youpai extends Base
 {
 
     /**
-     * 获取又拍相册所有分类
-     * @param  [type] $ghsid [供货商id]
-     * @return [type]        [description]
+     * getALLCatAndGoods 获取又拍相册所有分类
+     * @param  [int] $ghsid [供货商id]
+     * @return [json]        { 
+     * status:0 ,    0-成功 1-账号不存在、或token已过期  
+     * desc:'获取商品信息' , 
+     * result:[  
+     *     {"albumid":860656,"goods":[{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"},{"id":20084015,"name":"微商相册二维码，转图神器","cover":"\/2855775930_v\/85d16ac9\/bca48564.png","type":"photo"}]}  ,   
+     * 
+     * {"albumid":860656,"goods":[{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"},{"id":20084015,"name":"微商相册二维码，转图神器","cover":"\/2855775930_v\/85d16ac9\/bca48564.png","type":"photo"}]}
+     * 
+     * 
+     * ] }
      */
-    public function getALLCat()
+    public function getALLCatAndGoods()
     {
         $req = Request::instance()->param();
+
+        // 1\判断是否已授权或者token是否过期
+        $ghs  = new GhsMod();
+        $res = $ghs->isExpireTokenYP( $req['ghsid'] );
+        
+
+        if( !$res )
+        {
+            $obj = Array(
+                'status'=>1,
+                'desc'=>"账号不存在、或token已过期",
+                'result'=>$res
+            );   
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;         
+        }
+
+        // $token = Db::table('gonghuoshang')->where(['id'=>$req['ghsid']])->field('youpaitoken')->select();
+        // $token = $token[0]['youpaitoken'] );
         $ghs  = new GhsMod();
         $res  =$ghs->getGhsInfo( $req['ghsid'] );
-        $res_arr = json_decode($res , true);
+        // dump( $res );
+        $res_arr = $res[0];
+        // dump($res_arr);die;
+        // $res_arr = json_decode($res , true);
         // print_r($res_arr['result']);
-        if( 0 != $res_arr['status'] ) 
-        {
-            exit( $res );
-        }
-        else
-        {
-            $useridYP = $res_arr['result']['youpaiuserid'];
-            $openId = $res_arr['result']['youpaiopenid'];
-            $token  = $res_arr['result']['youpaitoken'];
-            $token ='b63ba5b0582ca04fae182941daaa3b40c81de918' ;
+       
+            $useridYP = $res_arr['youpaiuserid'];
+            $openId = $res_arr['youpaiopenid'];
+            $token  = $res_arr['youpaitoken'];
             
             $arr = array( $token , '/category/openId=' , $openId , Config::get('YPAppKey') );
             $sign = md5( join("" , $arr) ) ;
@@ -43,6 +68,7 @@ class Youpai extends Base
             $output = json_decode( curl_exec( $ch ) , true   );
             curl_close($ch);
             $catarr = $output['data']; 
+            // dump( $output );die;
             /**
              * 示例{
             "id": 515599,
@@ -53,17 +79,70 @@ class Youpai extends Base
             
             $obj = Array(
                 'status' => 0,
-                'desc'   => '获取所有分类',
-                'result' => $catarr 
+                'desc'   => '获取商品信息成功',
+                'result' => array()
             );
+
+
+            $totalLength = 6 ;
+            foreach( $catarr as $key => $val )
+            {
+
+                $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
+                // print_r( $val['id'] );
+                // dump($alb);
+                if( count( $alb ) > $totalLength ) 
+                    array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>array_slice($alb , 0 , $totalLength) ) );
+                else
+                    array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>$alb) );
+            }
+
 
             return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
           // 根据分类id获取对应的相册，返还给前台
             
 
+
+
+    }
+
+    /**
+     * [getAlbumByCatId 根据分类id 获取该分类下的相册]
+     * @param  [int] $catId [description]
+     * @return [array]        [[{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"] , [{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"]]
+     */
+    public function getAlbumByCatId( $catId , $token , $openId )
+    {
+        // $token = 'ce488cee72b79510efe438c92ce53e18ab56ee1f' ;
+        // $openId = '69d9a729f819c36a782006d08221b6c1' ;
+        // $req = Request::instance()->param();
+        // $catId = $req['catid']; 
+
+
+        // $arr = array( $token , '/category/openId=' , $openId , Config::get('YPAppKey') );
+
+
+        $arr = array( $token , '/category/'.$catId.'/all/openId=' , $openId , Config::get('YPAppKey') );
+        // dump( $arr );
+        $sign = md5( join("" , $arr) ) ;
+        $requestUrl = Config::get('YPApi').'category/'.$catId.'/all?token='.$token.'&sign='.$sign.'&openId='.$openId ;
+        
+        // print_r( $requestUrl ); 
+        $ch = curl_init();
+        curl_setopt( $ch , CURLOPT_URL ,  $requestUrl );
+        curl_setopt( $ch , CURLOPT_RETURNTRANSFER , 1);
+        curl_setopt( $ch , CURLOPT_HEADER , 0);
+        // $output = curl_exec( $ch ) ;
+        $output = json_decode( curl_exec( $ch ) , true   );
+        curl_close($ch);
+        // dump( $output['data'] );
+        $data = $output['data'];
+        foreach( $data as $key=>$val )
+        {
+            $data[$key]['cover'] = Config::get('YPImageBaseUrl').$val['cover'];
+            // print_r( $data[$key]['cover'] );
         }
-
-
+        return $data;
     }
  
 

@@ -66,6 +66,7 @@ class Ghs extends Base
         $ghs  = new GhsMod();
         $req = Request::instance()->param();
         $res = $ghs->getGhsInfo( $req['ghsid'] );
+        return $res ;
         if( $res )
         {
             $obj =Array(
@@ -219,7 +220,7 @@ class Ghs extends Base
      * @param  [int]  $ghsid [description]
      * @return boolean        [description]
      */
-    public function isExpireTokenYP( $ghsid )
+    public function isExpireTokenYP(  )
     {
         $req = Request::instance()->param();
         $ghs  = new GhsMod();
