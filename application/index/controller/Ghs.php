@@ -11,10 +11,7 @@ class Ghs extends Base
 {
     public function index()
     {
-
-
-        // $this->response(34);
-        exit( json_encode(array('name'=>'ddd') , JSON_UNESCAPED_UNICODE) ); 
+        print_r( "index" );
     }
 
     /**

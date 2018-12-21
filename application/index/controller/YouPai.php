@@ -11,7 +11,7 @@ class Youpai extends Base
 {
 
     /**
-     * getALLCatAndGoods 获取又拍相册所有分类
+     * getALLCatAndGoods 获取又拍相册所有分类 20181221
      * @param  [int] $ghsid [供货商id]
      * @return [json]        { 
      * status:0 ,    0-成功 1-账号不存在、或token已过期  
@@ -198,6 +198,39 @@ class Youpai extends Base
             // print_r( $data[$key]['cover'] );
         }
         return $data;
+    }
+
+    /**
+     * [getPhotosByAlbumId 根据相册id获取相册内的照片信息]
+     * @return [type] [description]
+     */
+    public function getPhotosByAlbumId()
+    {
+        $req = Reuest::instance();
+
+        print_r( $req['albumid'] );
+
+
+        // 1\判断是否已授权或者token是否过期
+        $ghs  = new GhsMod();
+        $res = $ghs->isExpireTokenYP( $req['ghsid'] );
+        // dump($res);
+
+        if( !$res )
+        {
+            $obj = Array(
+                'status'=>1,
+                'desc'=>"账号不存在、或token已过期",
+                'result'=>$res
+            );   
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;         
+        }
+
+        
+        //  /photos/{photoId}/album
+        
+
+
     }
  
 
