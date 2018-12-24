@@ -39,14 +39,59 @@ class Ghs extends Base
     public function login(  )
     {
        
-        $ghs  = new GhsMod();
+       
        
         $req = Request::instance()->param();
-        $res = $ghs->login( $req['phone'] , $req['password'] );
+        // $res = $ghs->login( $req['phone'] , $req['password'] );
         // dump( $res );die;
         // return json_encode($res, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
         // return json_encode($res);
-        return $res ;
+        // return $res ;
+
+
+        $res = Db::table( "gonghuoshang" )->where(['phone'=>$req['phone']])->field('id,password')->select();
+        print_r( "dnvd" );
+        dump( $res );
+
+        if( empty( $res ) ) 
+        {
+            return json_encode( Array( 'status'=>1 , 'desc'=>'账号或密码错误' ,'result'=>null) , JSON_UNESCAPED_UNICODE );
+            die;
+        }
+        if( $res[0]['password'] != md5(md5( $req['password'] )) )
+        {
+            return json_encode( Array( 'status'=>1 , 'desc'=>'账号或密码错误' ,'result'=>null) , JSON_UNESCAPED_UNICODE );
+            die;
+        }
+
+       
+            //获取供货商的其他信息
+            $ghs  = new GhsMod();
+            $res = $ghs->getGhsInfo($res['id']);
+            print_r("gonghuoshanginfo");
+            dump($res);
+
+            // $res_arr = json_decode($res,true);
+            if( 0!=$res_arr['status'] )
+            {
+                $obj = array(
+                    'result'=>null,
+                    "status" => -1,
+                    "desc"=>"获取供货商信息失败"   //插入数据错误
+                );       
+            }
+            else
+            {
+                $obj['result']['name'] =$res[0]['name']; 
+                $obj['result']['phone'] =$res[0]['phone']; 
+                $obj['result']['gno'] =$res[0]['gno']; 
+            }
+        // }
+        
+        
+       return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
+       // 
+       // 
     }
 
 

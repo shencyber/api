@@ -75,34 +75,25 @@ class GhsMod extends Model
     public function login( $phone , $password )
     {
         $res = Db::table( $this->table )->where(['phone'=>$phone])->field('id,password')->select();
+        print_r( "dnvd" );
         dump( $res );
-        die;
-        // $modelObj = model('GhsMod');
-        // $res = $modelObj->where(['phone'=>$phone , 'password'=>md5(md5($password))])->value('id') ; 
-        // $res = $modelObj->where(['phone'=>$phone , 'password'=>md5(md5($password))])->value('id') ; 
 
-        // if( !$res ) 
-        // {
-        //     $obj = array(
-        //         'result'=>null,
-        //         "status" => -1,
-        //         "desc"=>"手机号或密码错误"   //插入数据错误
-        //     );
-        // }
-        // else
-        // {
-        //     $obj =  array(
-        //         'result'=>['userid'=>$res],
-        //         "status" => 0,
-        //         "desc"=>"登录成功"   //插入数据错误
-        //     );
+        if( empty( $res ) ) 
+        {
+            return false ;
+            die;
+        }
+        if( $res[0]['password'] != md5(md5( $password )) )
+        {
+            return -1 ;
+            die;
+        }
 
-            
-
+       
             //获取供货商的其他信息
-            // $res = $this->getGhsInfo($res);
-            // print_r("gonghuoshanginfo");
-            // dump($res);
+            $res = $this->getGhsInfo($res);
+            print_r("gonghuoshanginfo");
+            dump($res);
 
             // $res_arr = json_decode($res,true);
             // if( 0!=$res_arr['status'] )
