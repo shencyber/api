@@ -50,8 +50,8 @@ class Ghs extends Base
 
 
         $res = Db::table( "gonghuoshang" )->where(['phone'=>$req['phone']])->field('id,password')->select();
-        print_r( "dnvd" );
-        dump( $res );
+        // print_r( "dnvd" );
+        // dump( $res );
 
         if( empty( $res ) ) 
         {
@@ -67,28 +67,30 @@ class Ghs extends Base
        
             //获取供货商的其他信息
             $ghs  = new GhsMod();
-            $res = $ghs->getGhsInfo($res['id']);
-            print_r("gonghuoshanginfo");
-            dump($res);
+            $resInfo = $ghs->getGhsInfo($res[0]['id']);
+            // print_r("gonghuoshanginfo");
+            // dump($resInfo);
 
             // $res_arr = json_decode($res,true);
-            if( 0!=$res_arr['status'] )
-            {
-                $obj = array(
-                    'result'=>null,
-                    "status" => -1,
-                    "desc"=>"获取供货商信息失败"   //插入数据错误
-                );       
-            }
-            else
-            {
-                $obj['result']['name'] =$res[0]['name']; 
-                $obj['result']['phone'] =$res[0]['phone']; 
-                $obj['result']['gno'] =$res[0]['gno']; 
-            }
+            // if( 0!=$resInfo[0]['status'] )
+            // {
+            //     $obj = array(
+            //         'result'=>null,
+            //         "status" => -1,
+            //         "desc"=>"获取供货商信息失败"   //插入数据错误
+            //     );       
+            // }
+            // else
+            // {
+                $obj = array( 'status'=>0 , 'desc'=>"登录成功" , 'result' => array() );
+                $obj['result']['userid'] =$res[0]['id']; 
+                $obj['result']['name'] =$resInfo[0]['name']; 
+                $obj['result']['phone'] =$resInfo[0]['phone']; 
+                $obj['result']['gno'] =$resInfo[0]['gno']; 
+            // }
         // }
         
-        
+        // dump( $obj );
        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; 
        // 
        // 

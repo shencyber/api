@@ -75,8 +75,8 @@ class GhsMod extends Model
     public function login( $phone , $password )
     {
         $res = Db::table( $this->table )->where(['phone'=>$phone])->field('id,password')->select();
-        print_r( "dnvd" );
-        dump( $res );
+        // print_r( "dnvd" );
+        // dump( $res );
 
         if( empty( $res ) ) 
         {
