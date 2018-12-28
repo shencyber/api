@@ -355,6 +355,18 @@ class Goods extends Base
 
     }
 
+    /**
+     * [tongBuYP 同步又拍相册]
+     * @return [type] [description]
+     */
+    public function tongBuYP()
+    {
+      $req = Request::instance()->param();
+      dump( $req );die;
+      $modObj = model('GoodsMod');
+      return $modObj->tongBuYP( $req['name'] , $req['dec']  ,$req['ghsid'] , $req['youpaialbumid'] );
+    }
+
 
 
 

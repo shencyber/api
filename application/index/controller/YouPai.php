@@ -31,7 +31,8 @@ class Youpai extends Base
         // 1\判断是否已授权或者token是否过期
         $ghs  = new GhsMod();
         $res = $ghs->isExpireTokenYP( $req['ghsid'] );
-        // dump($res);
+        print_r( "dkfgld" );
+        dump($res);
 
         if( !$res )
         {

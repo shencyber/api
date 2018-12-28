@@ -72,6 +72,35 @@ class GoodsMod extends Model
     }
 
     /**
+     * [tongBuYP 同步又拍]
+     * @param [int] $[name] [<商品名称>]
+     * @param [int] $[desc] [<商品描述>]
+     * @param [int] $[ghsid] [<供货商id>]
+     * @param [int] $[youpaialbumid] [<又拍相册id>]
+     * @return [type] [description]
+     */
+    public  function tongBuYP( $name , $desc=""  ,$ghsid , $youpaialbumid )
+    {
+        $modelObj = model('GoodsMod');
+
+        $modelObj->data( [ 
+            'name'=>$name , 
+            'desc'=>$desc , 
+            'ghsid'=>$ghsid,
+            'youpaialbumid'=>$youpaialbumid,
+            'source'=>GoodsMod::SOURCE_YOUPAI,
+            'status'=>GoodsMod::SHANG_JIA,
+            'uptime'  => date('Y-m-d H:i:s'),
+            ] );
+
+        $res = $modelObj->save();
+        if( !$res ) return $modelObj->id ;
+        else return $res ;
+    }
+   
+
+
+    /**
      * 商品上架
      * @param  [int] $goodsid [商品id]
      * @return [type]            [description]
