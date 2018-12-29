@@ -257,26 +257,47 @@ class Goods extends Base
 
         $modelObj  = new GoodsMod();
         $res = $modelObj->getGoodsListByGhsId( $req['ghsid'] , $req['type'],$req['currentpage'],$req['pagesize'] ); 
+        // dump( $res );
 
         foreach( $res as $key=>$val )
         {
+            
             foreach( $val['urls'] as $index=>$url )
             {
 
-              $res[$key]['urls'][$index] = Config::get('ImageBaseURL').$url;
-              
+              if( 1 == $val['source'] )
+                $res[$key]['urls'][$index] = Config::get('ImageBaseURL').$url;
+              else if( 2 == $val['source'] )
+                $res[$key]['urls'][$index] = Config::get('YPImageBaseUrl').$url;
+            }
+
+            if( 2 == $val['source'] )
+            {
+              // echo "<pre>";
+              // print_r( $res[$key]['name'] );
+              // print_r( base64_decode($val['name']) );
+              // echo "</pre>";
+            
+
+                $res[$key]['name'] = base64_decode($val['name']);
+                print_r( $res[$key]['name'] );
+              // $res[$key]['name'] = urldecode("P100++%E5%86%A0%E5%86%9B%F0%9F%8F%86%E7%A7%8B%E5%86%AC%E4%B8%93%E6%9F%9C%E6%96%B0%E6%AC%BE%EF%BC%8Cchampion+%E9%BA%92%E9%BA%9F%E8%8A%B1%E8%87%82+%E5%8F%8C%E8%87%82%E5%8D%B0%E8%8A%B1+USA%E5%8A%A0%E7%BB%92%E8%BF%9E%E5%B8%BD%E5%8D%AB%E8%A1%A3%EF%BC%8C%E5%8A%");
             }
         }
-
-        $obj =Array(
+        // print_r( $res );
+        // die;
+        $obj =array(
           'status' => 0,
           'total'  => $count,
           'desc'   => '查询成功',
           'result' => $res
 
-        );  
+        ); 
 
-        return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+        // dump( $obj );
+
+        // $obj = array('a' => 8787, );
+        return json_encode($obj , JSON_UNESCAPED_UNICODE  );die;
 
     }
 

@@ -356,7 +356,7 @@ class GoodsMod extends Model
         }
 
    
-        $res = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid', 'left')->where($con)->field('g.id,g.name,g.unitprice,group_concat(p.url) urls')->group('g.id')->page($currentpage,$pagesize)->select();
+        $res = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid', 'left')->where($con)->field('g.id,g.name,g.unitprice,g.source,group_concat(p.url) urls')->group('g.id')->page($currentpage,$pagesize)->select();
 
         foreach( $res as $key=>$val )
         {

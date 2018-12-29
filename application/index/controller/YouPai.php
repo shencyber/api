@@ -234,8 +234,9 @@ class Youpai extends Base
 
        // 3、创建商品
       $modObj = model('GoodsMod');
-      $insertedId = $modObj->tongBuYP( urlencode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
-      print_r( $insertedId );
+      $insertedId = $modObj->tongBuYP( base64_encode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+      // $insertedId = $modObj->tongBuYP( urlencode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+      // print_r( $insertedId );
 
       // 4、为商品添加图片
       $modObj = model('PhotoMod'); 
