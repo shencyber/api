@@ -240,7 +240,12 @@ class Youpai extends Base
       // 4、为商品添加图片
       $modObj = model('PhotoMod'); 
       $res = $modObj->addYPImage( $insertedId ,$photos , $req['youpaialbumid']  );
-      dump( $res );die;
+      $obj = array( 
+        'status' => 0 ,
+        'desc'   => '同步成功',
+        'result' => null
+      );
+      return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
     }
 
 
