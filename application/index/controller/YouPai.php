@@ -6,6 +6,7 @@ Use think\Config;
 Use \think\Request;
 Use \think\Db;
 Use app\index\model\GhsMod;
+Use app\index\model\PhotoMod;
 
 class Youpai extends Base
 {
@@ -31,8 +32,8 @@ class Youpai extends Base
         // 1\判断是否已授权或者token是否过期
         $ghs  = new GhsMod();
         $res = $ghs->isExpireTokenYP( $req['ghsid'] );
-        print_r( "dkfgld" );
-        dump($res);
+        // print_r( "dkfgld" );
+        // dump($res);
 
         if( !$res )
         {
@@ -75,7 +76,8 @@ class Youpai extends Base
                 $obj = Array(
                         'status'=>1,
                         'desc'=>"禁止访问",
-                        'result'=>[]
+                        // 'result'=>[]
+                        'result'=>$output['code']
                 );   
                 return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
             }
@@ -145,6 +147,7 @@ class Youpai extends Base
 
         // $arr = array( $token , '/category/openId=' , $openId , Config::get('YPAppKey') );
 
+        
 
         $arr = array( $token , '/category/'.$catId.'/all/openId=' , $openId , Config::get('YPAppKey') );
         // dump( $arr );
@@ -201,18 +204,17 @@ class Youpai extends Base
         return $data;
     }
 
+
     /**
-     * [getPhotosByAlbumId 根据相册id获取相册内的照片信息]
+     * [tongBuYP 同步又拍相册]
      * @return [type] [description]
      */
-    public function getPhotosByAlbumId()
+    public function tongBuYP()
     {
-        $req = Reuest::instance();
 
-        print_r( $req['albumid'] );
+        $req = Request::instance()->param();
 
-
-        // 1\判断是否已授权或者token是否过期
+        // 1、判断是否已授权或者token是否过期
         $ghs  = new GhsMod();
         $res = $ghs->isExpireTokenYP( $req['ghsid'] );
         // dump($res);
@@ -227,12 +229,66 @@ class Youpai extends Base
             return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;         
         }
 
-        
-        //  /photos/{photoId}/album
-        
+        // 2、根据相册id获取相册图片 
+       $photos = $this->getPhotosByAlbumId( $req['ghsid'] , $req['youpaialbumid'] );
 
+       // 3、创建商品
+      $modObj = model('GoodsMod');
+      $insertedId = $modObj->tongBuYP( urlencode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+      print_r( $insertedId );
+
+      // 4、为商品添加图片
+      $modObj = model('PhotoMod'); 
+      $res = $modObj->addYPImage( $insertedId ,$photos , $req['youpaialbumid']  );
+      dump( $res );die;
+    }
+
+
+
+    /**
+     * [getPhotosByAlbumId 根据相册id获取相册内的照片信息 ]
+     * @param  [int] $ghsid   [供货商id]
+     * @param  [int] $albumid [相册id]
+     * @return [array] [1.jpg,2.jpg]
+     */
+    public function getPhotosByAlbumId( $ghsid , $albumid )
+    {
+      
+        $ghs  = new GhsMod();
+        $res  =$ghs->getGhsInfo( $ghsid );
+
+        $res_arr = $res[0];
+        $useridYP = $res_arr['youpaiuserid'];
+        $openId = $res_arr['youpaiopenid'];
+        $token  = $res_arr['youpaitoken'];
+
+        $arr = array( $token , '/albums/'.$albumid.'/photos/all/openId=' , $openId , Config::get('YPAppKey') );
+        // dump( $arr );
+        $sign = md5( join("" , $arr) ) ;
+        $requestUrl = Config::get('YPApi').'albums/'.$albumid.'/photos/all?token='.$token.'&sign='.$sign.'&openId='.$openId ;
+        
+        // print_r( $requestUrl ); 
+        $ch = curl_init();
+        curl_setopt( $ch , CURLOPT_URL ,  $requestUrl );
+        curl_setopt( $ch , CURLOPT_RETURNTRANSFER , 1);
+        curl_setopt( $ch , CURLOPT_HEADER , 0);
+        // $output = curl_exec( $ch ) ;
+        $output = json_decode( curl_exec( $ch ) , true   );
+        curl_close($ch);
+        // dump( $output );
+        // die;
+
+        $photos = array();
+        foreach( $output['data']['list'] as $key=>$item )
+        {
+            array_push($photos, $item['path']);
+        }
+
+        return $photos;
 
     }
+
+    
  
 
     /**

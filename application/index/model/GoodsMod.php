@@ -94,8 +94,10 @@ class GoodsMod extends Model
             ] );
 
         $res = $modelObj->save();
-        if( !$res ) return $modelObj->id ;
-        else return $res ;
+        return $modelObj->id ;
+        // print_r( !!$res  );
+        // if( !$res ) return $modelObj->id ;
+        // else return $res ;
     }
    
 

@@ -65,6 +65,35 @@ class PhotoMod extends Model
     }
 
     /**
+     * 添加相册图片
+     * @param [int] $[goodid] [<商品id>]
+     * @param [int] $[imgurls] [<图片名数组>]
+     * @return [type] [description]
+     */
+    public function addYPImage( $goodid ,  $imgurls , $albumid )
+    {
+       $modelObj = model('PhotoMod');
+
+       $list = [] ;
+       foreach( $imgurls as $imgurl )
+       {    
+            array_push( $list , [ 
+                'goodid'=>$goodid , 
+                'code'=>$this->getHashValue( Config::get('YPImageBaseUrl').$imgurl ) , 
+                'url'=>$imgurl, 
+                'uploadtime'=>date('Y-m-d H:i:s'),
+                'youpaialbumid'=> $albumid
+              ]
+            );
+       } 
+
+        return $modelObj->saveAll( $list );
+
+    }
+
+
+
+    /**
      * 根据图片的hash值，获取图片数据
      * @param  [String] $hash [图片hash值]
      * @return [Array]       [图片对应的id数组]
