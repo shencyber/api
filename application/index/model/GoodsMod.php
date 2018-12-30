@@ -214,9 +214,9 @@ class GoodsMod extends Model
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
      * @return [type] [description]
      */
-    public function updateGoods($goodsid , $name , $desc , $unitprice)
+    public function updateGoods($goodsid , $name , $desc , $unitprice,$unit)
     {
-        $data = [ 'name'=>$name , 'desc'=>$desc , 'unitprice'=>$unitprice ];
+        $data = [ 'name'=>$name , 'desc'=>$desc , 'unitprice'=>$unitprice ,'unit'=>$unit];
         // print_r($data);die;
         $res = DB::table('goods')->where(['id'=>$goodsid])->update( $data );
         if( $res >= 0 )
@@ -297,7 +297,7 @@ class GoodsMod extends Model
     public function getGoodsById( $gid )
     {
        
-        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.unitprice,group_concat(p.url) urls,g.desc')->select();
+        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.source,g.status,g.unitprice,g.unit,group_concat(p.url) urls,g.desc')->select();
         return $list;
 
     
@@ -356,7 +356,7 @@ class GoodsMod extends Model
         }
 
    
-        $res = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid', 'left')->where($con)->field('g.id,g.name,g.unitprice,g.source,group_concat(p.url) urls')->group('g.id')->page($currentpage,$pagesize)->select();
+        $res = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid', 'left')->where($con)->field('g.id,g.name,g.unitprice,g.source,g.soldamount,g.uptime,group_concat(p.url) urls')->group('g.id')->page($currentpage,$pagesize)->select();
 
         foreach( $res as $key=>$val )
         {

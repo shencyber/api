@@ -97,33 +97,28 @@ class Youpai extends Base
                 'result' => array()
             );
             // print_r("fenlei");
-            // dump( $catarr[2] );
+            // dump( $catarr );
             $totalLength = 6 ;
             // $alb = $this->getAlbumByCatId( $catarr[2]['id'] ,  $token , $openId  );die;
             // die;
             foreach( $catarr as $key => $val )
             {
-                // if( 0 == $val['albumNumber'] )
-                // {
-                //     dump( $val );
-                //     $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
-                // }
+                // print_r( "a:" );print_r($key);
                 if( $val['albumNumber'] > 0 )
                 {
 
                     $alb = $this->getAlbumByCatId( $val['id'] ,  $token , $openId  );
-        
+                    // dump( $alb );
+                    // if( $key == 1 ) die;
                 
                     if( sizeof( $alb ) > $totalLength ) 
-                        array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>array_slice($alb , 0 , $totalLength) ) );
+                        array_push( $obj['result'] , array('cateid'=>$val['id'] , 'catename'=>$val['name'], 'goods'=>array_slice($alb , 0 , $totalLength) ) );
                     else
-                        array_push( $obj['result'] , array('albumid'=>$val['id'] , 'albumname'=>$val['name'], 'goods'=>$alb) );
-            
+                        array_push( $obj['result'] , array('cateid'=>$val['id'] , 'catename'=>$val['name'], 'goods'=>$alb) );
                 }
 
+            // dump( $obj );
             }
-
-
             return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
           // 根据分类id获取对应的相册，返还给前台
             
@@ -133,21 +128,69 @@ class Youpai extends Base
     }
 
     /**
+     * API
+     * [getAlbumByCatId 根据分类id 获取该分类下的相册]
+     * @param  [int] $catId [description]
+     * @return [array]        [[{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"] , [{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"]]
+     */
+    public function getAlbumByCatIdApi(  )
+    {
+       
+         $req = Request::instance()->param();
+         $catId = $req['catid'] ;  //分类id
+         $ghsid = $req['ghsid'] ;  //供货商id
+        // 1\判断是否已授权或者token是否过期
+        $ghs  = new GhsMod();
+        $res = $ghs->isExpireTokenYP( $req['ghsid'] );
+       
+
+        if( !$res )
+        {
+            $obj = Array(
+                'status'=>1,
+                'desc'=>"账号不存在、或token已过期",
+                'result'=>$res
+            );   
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;         
+        }
+
+        $ghs  = new GhsMod();
+        $res  =$ghs->getGhsInfo( $ghsid );
+        // $res_arr = $res[0];
+       
+        $useridYP = $res[0]['youpaiuserid'];
+        $openId = $res[0]['youpaiopenid'];
+        $token  = $res[0]['youpaitoken'];
+
+
+        $data = $this->getAlbumByCatId( $catId , $token , $openId  );
+        if( $data )
+        {
+            $obj = array(
+                'status' => 0 ,
+                'desc'   => '查询成功',
+                'result' => $data
+            );
+        }
+        else
+        {
+            $obj = array(
+                'status' => 0 ,
+                'desc'   => '查询成功',
+                'result' => $data
+            );
+        }
+
+        return  json_encode( $obj , JSON_UNESCAPED_UNICODE) ;
+    }
+
+    /**
      * [getAlbumByCatId 根据分类id 获取该分类下的相册]
      * @param  [int] $catId [description]
      * @return [array]        [[{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"] , [{"id":20084029,"name":"扫一扫加微信","cover":"\/2855775930_v\/815cc4bc\/da747216.jpg","type":"photo"]]
      */
     public function getAlbumByCatId( $catId , $token , $openId )
     {
-        // $token = 'ce488cee72b79510efe438c92ce53e18ab56ee1f' ;
-        // $openId = '69d9a729f819c36a782006d08221b6c1' ;
-        // $req = Request::instance()->param();
-        // $catId = $req['catid']; 
-
-
-        // $arr = array( $token , '/category/openId=' , $openId , Config::get('YPAppKey') );
-
-        
 
         $arr = array( $token , '/category/'.$catId.'/all/openId=' , $openId , Config::get('YPAppKey') );
         // dump( $arr );
@@ -200,7 +243,24 @@ class Youpai extends Base
             $data[$key]['cover'] = Config::get('YPImageBaseUrl').$val['cover'];
             // $data[$key]['cover'] = join("" ,  array(Config::get('YPImageBaseUrl') , $data[$key]['cover']) );
             // print_r( $data[$key]['cover'] );
+            //根据相册id判断相册是否在goods数据库内 
+            $exists = Db::table('goods')->where('youpaialbumid',$val['id'])->select();
+            // print_r("exists");
+            // print_r($exists);
+            if( $exists )
+            {
+                $data[$key]['exists'] = true;
+            }
+            else
+            {
+                $data[$key]['exists'] = false;
+            }
         }
+        // print_r("xiangc");
+        // dump( $data );
+
+
+
         return $data;
     }
 
@@ -229,30 +289,181 @@ class Youpai extends Base
             return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;         
         }
 
-        // 2、根据相册id获取相册图片 
-       $photos = $this->getPhotosByAlbumId( $req['ghsid'] , $req['youpaialbumid'] );
+        //根据相册id判断相册是否在goods数据库内 
+        $exists = Db::table('goods')->where( 'youpaialbumid' , $req['youpaialbumid'] )->select();
 
-       // 3、创建商品
-      $modObj = model('GoodsMod');
-      $insertedId = $modObj->tongBuYP( base64_encode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
-      // $insertedId = $modObj->tongBuYP( urlencode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
-      // print_r( $insertedId );
+            // 2、根据相册id获取相册图片 
+           $photos = $this->getPhotosByAlbumId( $req['ghsid'] , $req['youpaialbumid'] );
 
-      // 4、为商品添加图片
-      $modObj = model('PhotoMod'); 
-      $res = $modObj->addYPImage( $insertedId ,$photos , $req['youpaialbumid']  );
-      $obj = array( 
-        'status' => 0 ,
-        'desc'   => '同步成功',
-        'result' => null
-      );
-      return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+           // 3、创建商品
+          $modObj = model('GoodsMod');
+
+          // $insertedId = $modObj->tongBuYP( utf8_encode(bin2hex( $req['name'] )) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+          // $insertedId = $modObj->tongBuYP( base64_encode($req['name']) ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+          $insertedId = $modObj->tongBuYP( $req['name'] ,""  , $req['ghsid'] , $req['youpaialbumid'] );
+          // print_r( $insertedId );
+
+          // 4、为商品添加图片
+          $modObj = model('PhotoMod'); 
+          $res = $modObj->addYPImage( $insertedId ,$photos , $req['youpaialbumid']  );
+          $obj = array( 
+            'status' => 0 ,
+            'desc'   => '同步成功',
+            'result' => null
+          );
+          return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+
+    }
+
+    /**
+     * [updateYP 更新相册]
+     * @param  [type] $youpaialbumid [相册id]
+     * @return [type]                [description]
+     */
+    public function updateYP(   )
+    {
+        $req = Request::instance()->param();
+        // $goodsid = $req['goodsid'] ;
+        $ghsid = $req['ghsid'] ;
+        $name = $req['name'] ;
+        $desc = $req['desc'] ;
+        $youpaialbumid = $req['youpaialbumid'] ;
+
+        $goodsidArr = Db::table('goods')->where('youpaialbumid' , $youpaialbumid)->field('id')->select();
+        $goodsid = $goodsidArr[0]['id'] ;
+
+        //1、 根据供货商id和相册id获取又拍的相册信息
+        $newphotos = $this->getPhotosByAlbumId( $ghsid , $youpaialbumid )  ;
+
+
+        //2、查询已有的相册，并且删除 //
+        $oldphotosArr = Db::table('photo')->where('youpaialbumid',$youpaialbumid)->select();
+        // print_r( $oldphotosArr );
+        $oldphotos = array();
+        foreach( $oldphotosArr as $key=>$val )
+        {
+            array_push( $oldphotos , $val['url'] );
+        }
+
+
+        $c = array_intersect( $newphotos , $oldphotos );
+        // print_r('交集');
+        // dump( $c );die;
+
+        $delete = array_diff( $oldphotos , $c );
+
+        // print_r('delete');
+        // print_r($delete);
+
+        $insert = array_diff( $newphotos , $c );
+        // print_r('insert');
+        // print_r($insert);
+        // 
+        if( $delete )
+        {
+            $res = Db::table('photo')->where( 'url' ,  'in' , $delete  )->delete();
+
+        }
+
+        if( $insert )
+        {
+
+           $modObj = model('PhotoMod'); 
+            $res = $modObj->addYPImage( $goodsid ,$insert , $req['youpaialbumid']  );
+            
+        }
+
+        //更新商品的name、desc
+        $res = Db::table('goods')->where(['id'=>$goodsid])->update(["name"=>$name,"desc"=>$desc]);
+        $obj = array( 
+                'status' => 0 ,
+                'desc'   => '更新成功',
+                'result' => null
+             );
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+
     }
 
 
 
     /**
+     * API
      * [getPhotosByAlbumId 根据相册id获取相册内的照片信息 ]
+     * @param  [int] $ghsid   [供货商id]
+     * @param  [int] $albumid [相册id]
+     * @return [array] [1.jpg,2.jpg]
+     */
+    public function getPhotosByAlbumIdApi(  )
+    {
+      
+        $req = Request::instance()->param();
+        // dump( $req );die;
+        $ghsid = $req['ghsid'];
+        $albumid = $req['albumid'];
+        
+        //1、判断该相册是否已经存在
+        $exists = false ;
+        $res = Db::table('goods')->where('youpaialbumid' , $albumid)->select();
+        // dump( $res );die;
+        if( $res ) $exists = true;
+
+        // $ghs  = new GhsMod();
+        // $res  =$ghs->getGhsInfo( $ghsid );
+
+        // $res_arr = $res[0];
+        // $useridYP = $res_arr['youpaiuserid'];
+        // $openId = $res_arr['youpaiopenid'];
+        // $token  = $res_arr['youpaitoken'];
+
+        // $arr = array( $token , '/albums/'.$albumid.'/detail/openId=' , $openId , Config::get('YPAppKey') );
+        // dump( $arr );
+        // $sign = md5( join("" , $arr) ) ;
+        // $requestUrl = Config::get('YPApi').'albums/'.$albumid.'/detail?token='.$token.'&sign='.$sign.'&openId='.$openId ;
+            
+        // $ch = curl_init();
+        // curl_setopt( $ch , CURLOPT_URL ,  $requestUrl );
+        // curl_setopt( $ch , CURLOPT_RETURNTRANSFER , 1);
+        // curl_setopt( $ch , CURLOPT_HEADER , 0);
+        // // $output = curl_exec( $ch ) ;
+        // $output = json_decode( curl_exec( $ch ) , true   );
+        // curl_close($ch);
+        // // print_r("album info");
+        // dump( $output );
+       
+     
+        // 2、根据相册id获取图片
+        $res = $this->getPhotosByAlbumId( $req['ghsid'] , $req['albumid'] );
+        // dump( $res );die;
+
+        if( $res )
+        {
+            foreach( $res as $key=>$val )
+            {
+                $res[$key] = Config::get('YPImageBaseUrl').$val ;
+            }
+            $obj = array( 
+                'status' => 0 ,
+                'desc'   => '查询成功',
+                'result' => array('exists'=>$exists , 'photos'=>$res)
+             );
+        }
+        else
+        {
+             $obj = array( 
+                'status' => 1 ,
+                'desc'   => ' 查询失败',
+                'result' => null
+             );
+        }
+
+        // dump( $res );
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE );die;
+       
+
+    }
+
+    /**
+     * [getPhotosByAlbumId 根据相册id获取又拍相册内的照片信息 ]
      * @param  [int] $ghsid   [供货商id]
      * @param  [int] $albumid [相册id]
      * @return [array] [1.jpg,2.jpg]
