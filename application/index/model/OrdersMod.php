@@ -179,8 +179,7 @@ class OrdersMod extends Model
     public function orderList( $ghsid ,  $currentpage , $pagesize , $status )
     {
         $modelObj  = new OrdersMod();
-        $count = $modelObj->getTotalOrderByGhsid( $ghsid );
-        echo $count ;
+        $count = $modelObj->getTotalOrderByGhsid( $ghsid , $status );
         if( 0 == $count )
         {
             $obj = array(
@@ -197,7 +196,7 @@ class OrdersMod extends Model
             ->where([ 'ord.ghsid'=> $ghsid , 'ord.status'=>$status ])
             ->order('createtime desc')
             ->page($currentpage , $pagesize)
-            ->field('ord.ordercode,ord.totalprice,ord.dlsid,ord.createtime,ord.status,ord.expressno,dls.nickname,dls.avatar')
+            ->field('ord.id,ord.ordercode,ord.totalprice,ord.dlsid,ord.createtime,ord.status,ord.expressno,dls.phone,dls.nickname,dls.avatar')
             ->select();
 
 
@@ -223,19 +222,21 @@ class OrdersMod extends Model
             // $dlsMod->getDlsInfo( $item['$dlsid'] );
 
         }
+        // dump(  );
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
 
     }
 
     /**
      * 根据供货商id获取订单总数量
-     * @param  [type] $ghsid [description]
+     * @param  [type] $ghsid [供货商id]
+     * @param  [type] $status [状态]
      * @return [type]        [description]
      */
-    public function getTotalOrderByGhsid( $ghsid )
+    public function getTotalOrderByGhsid( $ghsid , $status )
     {
         $modelObj  = new OrdersMod();
-        $count = $modelObj->where( [ "ghsid"=> $ghsid ] )->count();
+        $count = $modelObj->where( [ "ghsid"=> $ghsid  , 'status'=>$status] )->count();
         return $count;
     }
 
