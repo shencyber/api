@@ -181,6 +181,7 @@ class Goods extends Base
 
 
      /**
+      * API  
     * 根据商品id获取对应的商品数据
     * @param  [array] $goodsids [商品id]
     * @return [type]          [description]
