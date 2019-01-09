@@ -156,7 +156,7 @@ class Photo extends Base
             {
                 $imgName = $info->getFilename();
                 $hash =  $modelObj->getHashValue( Config::get('ImageTmpURL').$imgName );
-
+                // print_r(Config::get('ImageTmpURL').$imgName);
                 // print_r( $hash );
                 //将临时图片删除，节省空间
                 unlink ( Config::get('ImageTmpURL').$imgName );

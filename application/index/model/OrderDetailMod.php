@@ -7,6 +7,8 @@
 namespace app\index\model;
 Use think\Model;
 Use think\Db;
+Use think\Config;
+Use app\index\model\GoodsMod;
 
 
 
@@ -95,62 +97,40 @@ class OrderDetailMod extends Model
      */
     public function getDetail( $orderid  )
     {
-        // $modelObj = model('OrderDetailMod');
-        $list = Db::table('orders')
-            ->where(['id'=>$orderid])
-
-            ->select();
-
-        $list = Db::table('orders')->alias('ord')
-            ->join('orderdetail det','ord.id = det.orderid','left')
-            ->where([ 'ord.id'=> $orderid ])
-            ->field('ord.id,ord.ordercode,ord.totalprice,ord.dlsid,ord.createtime,ord.status,ord.expressno,det.goodid,det.unitprice,det.amount')
-            ->select();
-
-        // $list  = Array( 
-            //     Array(
-            //         [id] => 1,[ordercode] => 1,[totalprice] => 200,[dlsid] => 1,
-            //         [createtime] => 2018-12-06 13:08:12,[status] => 2,[expressno] => ,
-            //         [goodid] => 1,[unitprice] => 158,[amount] => 200),
-            //     Array(
-            //         [id] => 1,[ordercode] => 1,[totalprice] => 200,[dlsid] => 1,
-            //         [createtime] => 2018-12-06 13:08:12,[status] => 2,[expressno] => ,
-            //         [goodid] => 1,[unitprice] => 158,[amount] => 200),
-            // )
 
 
-        // print_r($list);die;
-        if( $list )
+        $goods = Db::table('orderdetail')->where(['orderid'=>$orderid])
+                ->field('goodid,unitprice,amount')
+                ->select();
+
+        
+        $modelObj = model('GoodsMod');
+        foreach( $goods as $key=>$val )
         {
-            //根据商品id获取商品信息
-            $goodsCon = controller( 'goods' );
-            foreach ($list as $key => $value) {
-                
-            }
+            $goodDetail = $modelObj->getGoodsById( $val['goodid'] );
+            $goods[$key]['name'] = $goodDetail[0]['name'];
+            $goods[$key]['source'] = $goodDetail[0]['source'];
+            $goods[$key]['status'] = $goodDetail[0]['status'];
+            $goods[$key]['unitprice'] = $goodDetail[0]['unitprice'];
+            $goods[$key]['unit'] = $goodDetail[0]['unit'];
+            $goods[$key]['desc'] = $goodDetail[0]['desc'];
 
-            $obj = array( 
-                "status" => 0 , 
-                "result" => [] ,
-                "desc" => "查询成功"
-            );
-
-             foreach( $list as $value )
+            $urls = explode("," , $goodDetail[0]['urls'] );
+            foreach( $urls as $subkey=>$subval )
             {
-                array_push( $obj['result'] , $value );
+                if( 1 == $goodDetail[0]['source'] )
+                    $urls[$subkey] = Config::get('ImageBaseURL').$subval;
+                else
+                    $urls[$subkey] = Config::get('YPImageBaseUrl').$subval;
+
             }
-
-
+            // print_r( $urls);die;
+            $goods[$key]['urls'] = $urls;
+            // print_r($goods);
         }
-        else
-        {
-            $obj = array( 
-                "status" => -1 ,  //插入数据错误
-                "desc" => "查询失败"
-            );
-
-        }
-
-        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ;die;
+        return $goods ;
+   
+       
     }
     
 

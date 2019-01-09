@@ -2,9 +2,11 @@
 //订单详情控制器
 namespace app\index\controller;
 Use think\Controller;
+Use think\Db;
+Use think\Request;
 Use app\index\model\OrderDetailMod;
 
-class OrderDetail extends Controller
+class Orderdetail extends Base
 {
    
    
@@ -43,16 +45,36 @@ class OrderDetail extends Controller
 
 
     /**
+     * Api
      * 订单详情
      * @param  [type] $orderid [订单id]
  
      * @return [type]          [description]
      */
-    public function getDetil( )
+    public function getDetailApi(  )
     {
+
+        $req = Request::instance()->param();
         $modelObj  = new OrderDetailMod();
-        return $modelObj->getDetail( $_POST['orderid']  );
+        return $modelObj->getDetail( $req['orderid']  );
     }
+
+
+    /**
+     * 方法
+     * 订单详情
+     * @param  [type] $orderid [订单id]
+ 
+     * @return [type]          [description]
+     */
+    public function getDetail(  $orderid )
+    {
+
+        $modelObj  = new OrderDetailMod();
+        return $modelObj->getDetail( $orderid  );
+    }
+
+
 
     
 

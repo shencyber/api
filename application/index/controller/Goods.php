@@ -98,7 +98,7 @@ class Goods extends Base
         
         $modelObj  = new GoodsMod();
 
-        $res = $modelObj->updateGoods( $req['goodsid'] , $req['name'] , $req['desc'] , $req['unitprice']   );
+        $res = $modelObj->updateGoods( $req['goodsid'] , $req['name'] , $req['desc'] , $req['unitprice'],$req['unit']   );
         // return $res ;
         // die;
         $res_arr = json_decode($res , true) ;
@@ -181,6 +181,7 @@ class Goods extends Base
 
 
      /**
+      * API  
     * 根据商品id获取对应的商品数据
     * @param  [array] $goodsids [商品id]
     * @return [type]          [description]
@@ -193,7 +194,8 @@ class Goods extends Base
 
         $modelObj  = new GoodsMod();
         //1、获取商品信息
-        $list =   $modelObj->getGoodsById( $req['gid'] ) ;
+        $list =   $modelObj->getGoodsById( $req['goodsid'] ) ;
+        // dump( $list );die;
         foreach( $list as $key=>$value)
         {
           if(  $value['id'] == null)
@@ -203,11 +205,15 @@ class Goods extends Base
           else
           {
             $tmp_urls = explode( "," , $value['urls'] ) ;
+            $list[$key]['shortUrls'] = $tmp_urls ;
             foreach( $tmp_urls as $index=>$val )
             {
-                $tmp_urls[$index] = Config::get('ImageBaseURL').$val;   
+              if( 1 == $value['source'] )
+                $tmp_urls[$index] = Config::get('ImageBaseURL').$val; 
+              else if( 2 == $value['source'] )  
+                $tmp_urls[$index] = Config::get('YPImageBaseUrl').$val; 
             }
-            $list[$key]['urls'] = $tmp_urls ;
+            $list[$key]['longUrls'] = $tmp_urls ;
           }
         }
        
@@ -271,21 +277,22 @@ class Goods extends Base
                 $res[$key]['urls'][$index] = Config::get('YPImageBaseUrl').$url;
             }
 
-            if( 2 == $val['source'] )
-            {
+            // if( 2 == $val['source'] )
+            // {
+
               // echo "<pre>";
               // print_r( $res[$key]['name'] );
               // print_r( base64_decode($val['name']) );
               // echo "</pre>";
             
 
-                $res[$key]['name'] = base64_decode($val['name']);
+                // $res[$key]['name'] = base64_decode($val['name']);
                 // print_r( $res[$key]['name'] );
               // $res[$key]['name'] = urldecode("P100++%E5%86%A0%E5%86%9B%F0%9F%8F%86%E7%A7%8B%E5%86%AC%E4%B8%93%E6%9F%9C%E6%96%B0%E6%AC%BE%EF%BC%8Cchampion+%E9%BA%92%E9%BA%9F%E8%8A%B1%E8%87%82+%E5%8F%8C%E8%87%82%E5%8D%B0%E8%8A%B1+USA%E5%8A%A0%E7%BB%92%E8%BF%9E%E5%B8%BD%E5%8D%AB%E8%A1%A3%EF%BC%8C%E5%8A%");
-            }
+
+            // }
         }
-        // print_r( $res );
-        // die;
+       
         $obj =array(
           'status' => 0,
           'total'  => $count,
@@ -294,9 +301,8 @@ class Goods extends Base
 
         ); 
 
-        // dump( $obj );die;
+      
 
-        // $obj = array('a' => 8787, );
         return json_encode($obj , JSON_UNESCAPED_UNICODE  );die;
 
     }
@@ -310,6 +316,8 @@ class Goods extends Base
         $req = Request::instance();
         // print_r($req);die;
         $file = $req->file('image');
+        $param = $req->param();
+
 
         $photoCon = controller( 'photo' );
         $res = $photoCon->searchByImage( $file );
@@ -327,7 +335,20 @@ class Goods extends Base
             //1、根据商品id找到商品详情和对应的供货商信息
             // $res = $modObj->getGoodsByIds( [ 222] );
             $res = $modObj->getGoodsByIds( $res_arr['result'] );
-            // dump( $res );
+            // dump( $res );die;
+
+            //如果前台传过来供货商id，则需要匹配该供货商的照片
+            if( $param['ghsid'] )
+            {
+              foreach( $res as$key=>$val )
+              {
+                if( $val['ghsid'] != $param['ghsid'] )
+                {
+                  unset( $res[$key] );
+                }
+              }
+            }
+
             if( empty( $res ) )
             {
                 return json_encode(Array( 'status'=>1 , 'desc'=>'未找到对应的商品信息','result'=>[] ) , JSON_UNESCAPED_UNICODE);die;
@@ -336,7 +357,7 @@ class Goods extends Base
             {
                foreach( $res as $key=>$val )
                 {
-                    $res[$key]['goods'] = array( 'id'=>$val['id'],'name'=>$val['name'],'unitprice'=>$val['unitprice'],'desc'=>$val['desc']  );
+                    $res[$key]['goods'] = array( 'id'=>$val['id'],'name'=>$val['name'],'unitprice'=>$val['unitprice'],'desc'=>$val['desc'],'ghsid'  );
                     unset( $res[$key]['id'] );
                     unset( $res[$key]['name'] );
                     unset( $res[$key]['unitprice'] );

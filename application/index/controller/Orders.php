@@ -3,12 +3,13 @@
 namespace app\index\controller;
 Use think\Controller;
 Use think\Request;
+Use think\Db;
 Use app\index\model\OrdersMod;
 Use app\index\model\OrderDetailMod;
 Use app\index\model\GoodsMod;
 
 
-class Orders extends Controller
+class Orders extends Base
 {
    
    
@@ -236,18 +237,66 @@ class Orders extends Controller
     }
 
     /**
+     * Api
      * 获取订单列表[已完成]
-     * @param  [type] $ghsid       [供货商id]
-     * @param  [type] $currentpage [当前页数]
-     * @param  [type] $pagesize    [每页显示数量]
+     * @param  [int] $ghsid       [供货商id]
+     * @param  [int] $currentpage [当前页数]
+     * @param  [int] $pagesize    [每页显示数量]
+     * @param  [int] $status      [1-代收款 2-待发货  3-已发货  4-已取消]
      * @return [type]              [description]
      */
     // public function orderList( $ghsid ,  $currentpage , $pagesize )
-    public function orderList(  )
+    public function orderListApi(  )
     {
-        $modelObj  = new OrdersMod();
+      $req = Request::instance()->param();
 
-        return $modelObj->orderList( $_POST['ghsid'] , $_POST['currentpage'] , $_POST['pagesize'] , $_POST['status']  );
+      $modelObj  = new OrdersMod();
+
+      return $modelObj->orderList( $req['ghsid'] , $req['currentpage'] , $req['pagesize'] , $req['status']  );
+
+    }
+
+    /**
+     * [getDetailApi 根据订单id获取订单详情 需要查询order、orderdetail、goods、photo表]
+     * @param  [type] $orderid [description]
+     * @return [type]          [description]
+     */
+    public function getDetailApi()
+    {
+
+      $req = Request::instance()->param();
+      $oid = $req['orderid'] ;
+      //1、获取订单信息
+      $order = Db::table('orders')->where( 'id' , $oid )->select();
+      // print_r( $order );
+// die;
+
+      //2、获取订单详情-订单对应商品信息
+      $detailCon = controller('Orderdetail');
+      $detail = $detailCon->getDetail( $oid );
+      // print_r( $detail );
+      $order[0]['detail'] = $detail;
+      // print_r( $order[0] );
+
+      if( $order[0] )
+      {
+        $obj = array(
+          'status' => 0,
+          'desc'   => '查询成功',
+          'result' => $order[0]
+        );
+      }
+      else
+      {
+        $obj = array(
+          'status' => 1,
+          'desc'   => '查询失败',
+          'result' => null
+        ); 
+      }
+
+      return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+
 
     }
 
