@@ -111,7 +111,7 @@ class OrderDetailMod extends Model
             $goods[$key]['name'] = $goodDetail[0]['name'];
             $goods[$key]['source'] = $goodDetail[0]['source'];
             $goods[$key]['status'] = $goodDetail[0]['status'];
-            $goods[$key]['unitprice'] = $goodDetail[0]['unitprice'];
+            // $goods[$key]['unitprice'] = $goodDetail[0]['unitprice'];
             $goods[$key]['unit'] = $goodDetail[0]['unit'];
             $goods[$key]['desc'] = $goodDetail[0]['desc'];
 

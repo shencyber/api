@@ -169,7 +169,7 @@ class OrdersMod extends Model
 
 
     /**
-     * 获取订单列表
+     * 根据供货商id获取订单列表【Done】
      * @param  [int] $ghsid       [供货商id]
      * @param  [int] $currentpage [当前页数]
      * @param  [int] $pagesize    [每页显示数量]
@@ -227,6 +227,66 @@ class OrdersMod extends Model
 
     }
 
+
+    /**
+     * 根据代理商id获取订单列表【done】
+     * @param  [int] $dlsid       [供货商id]
+     * @param  [int] $currentpage [当前页数]
+     * @param  [int] $pagesize    [每页显示数量]
+     * @param  [int] $status    [订单状态 1-待收款 2-待发货 3-已发货 4-已取消]
+     * @return [type]              [description]
+     */
+    public function dlsOrderList( $dlsid ,  $currentpage , $pagesize , $status )
+    {
+        $modelObj  = new OrdersMod();
+        $count = $modelObj->getTotalOrderByDlsid( $dlsid , $status );
+        if( 0 == $count )
+        {
+            $obj = array(
+                'result'=>null,
+                "status" => 0,
+                "desc"=>"无数据" 
+            );
+            return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+        }
+
+
+        $list = Db::table('orders')->alias('ord')
+            ->join('dailishang dls','ord.dlsid = dls.id','left')
+            ->where([ 'ord.dlsid'=> $dlsid , 'ord.status'=>$status ])
+            ->order('createtime desc')
+            ->page($currentpage , $pagesize)
+            ->field('ord.id,ord.ordercode,ord.totalprice,ord.dlsid,ord.createtime,ord.status,ord.expressno,dls.phone,dls.nickname,dls.avatar')
+            ->select();
+
+
+      
+        $obj = array(
+            'result'=>array(),
+            'total'=>$count,
+            "status" => 0,
+            "desc"=>"找到了" 
+        );
+
+        foreach($list as $url)
+        {
+            array_push( $obj['result'] , $url );
+        }
+
+        // print_r( $obj );die;
+        //根据代理商id获取代理商的详细信息
+        // foreach( $obj['result'] as $index=>$item  )
+        {
+
+            // $dlsMod = new DlsMod();
+            // $dlsMod->getDlsInfo( $item['$dlsid'] );
+
+        }
+        // dump(  );
+        return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
+
+    }
+
     /**
      * 根据供货商id获取订单总数量
      * @param  [type] $ghsid [供货商id]
@@ -239,6 +299,20 @@ class OrdersMod extends Model
         $count = $modelObj->where( [ "ghsid"=> $ghsid  , 'status'=>$status] )->count();
         return $count;
     }
+
+    /**
+     * 根据代理商id获取订单总数量
+     * @param  [type] $dlsid [代理商id]
+     * @param  [type] $status [状态]
+     * @return [type]        [description]
+     */
+    public function getTotalOrderByDlsid( $dlsid , $status )
+    {
+        $modelObj  = new OrdersMod();
+        $count = $modelObj->where( [ "dlsid"=> $dlsid  , 'status'=>$status] )->count();
+        return $count;
+    }
+
 
     
 

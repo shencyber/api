@@ -317,7 +317,7 @@ class Goods extends Base
         // print_r($req);die;
         $file = $req->file('image');
         $param = $req->param();
-
+        
 
         $photoCon = controller( 'photo' );
         $res = $photoCon->searchByImage( $file );
@@ -338,7 +338,7 @@ class Goods extends Base
             // dump( $res );die;
 
             //如果前台传过来供货商id，则需要匹配该供货商的照片
-            if( $param['ghsid'] )
+            if( !empty($param['ghsid'] ))
             {
               foreach( $res as$key=>$val )
               {
@@ -357,7 +357,7 @@ class Goods extends Base
             {
                foreach( $res as $key=>$val )
                 {
-                    $res[$key]['goods'] = array( 'id'=>$val['id'],'name'=>$val['name'],'unitprice'=>$val['unitprice'],'desc'=>$val['desc'],'ghsid'  );
+                    $res[$key]['goods'] = array( 'id'=>$val['id'],'name'=>$val['name'],'unitprice'=>$val['unitprice'],'desc'=>$val['desc']  );
                     unset( $res[$key]['id'] );
                     unset( $res[$key]['name'] );
                     unset( $res[$key]['unitprice'] );
