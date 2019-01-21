@@ -321,7 +321,7 @@ class Goods extends Base
 
         $photoCon = controller( 'photo' );
         $res = $photoCon->searchByImage( $file );
-        // print_r( $res );
+        // print_r( $res );die;
         $res_arr = json_decode($res , true);
         if( 0 != $res_arr['status'] ) 
         {
