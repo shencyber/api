@@ -7,6 +7,7 @@
 namespace app\index\model;
 Use think\Model;
 Use think\Db;
+Use think\Config;
 
 Use app\index\model\GhsMod;
 class OrdersMod extends Model
@@ -250,17 +251,37 @@ class OrdersMod extends Model
             return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
         }
 
-
         $list = Db::table('orders')->alias('ord')
-            ->join('dailishang dls','ord.dlsid = dls.id','left')
+            ->join('gonghuoshang ghs','ord.ghsid = ghs.id','left')
             ->where([ 'ord.dlsid'=> $dlsid , 'ord.status'=>$status ])
             ->order('createtime desc')
             ->page($currentpage , $pagesize)
-            ->field('ord.id,ord.ordercode,ord.totalprice,ord.dlsid,ord.createtime,ord.status,ord.expressno,dls.phone,dls.nickname,dls.avatar')
+            ->field('ord.id,ord.ordercode,ord.totalprice,ord.ghsid,ord.createtime,ord.status,ord.expressno,ghs.name as ghsname')
             ->select();
 
+        // print_r($list);die;
 
-      
+        foreach( $list as $index=>$item )
+        {
+                $goods = Db::table('orderdetail')
+                ->join('photo' , 'orderdetail.goodid = photo.goodid' , 'left')
+                ->join('goods' , 'goods.id =orderdetail.goodid ' , 'left')
+                ->field('orderdetail.unitprice,orderdetail.amount,goods.id,goods.source,goods.name as gname,photo.url')
+                ->where('orderid',$list[0]['id'])
+                ->group('photo.goodid')
+                ->select();
+                foreach( $goods as $i=>$good )
+                {
+                     if( 1 == $good['source'] )
+                        $goods[$i]['url'] = Config::get('ImageBaseURL').$goods[$i]['url'];
+                    else
+                        $goods[$i]['url'] = Config::get('YPImageBaseUrl').$goods[$i]['url'];
+
+                }
+                $list[$index]['goods'] = $goods ;
+        }
+
+
         $obj = array(
             'result'=>array(),
             'total'=>$count,
@@ -273,16 +294,6 @@ class OrdersMod extends Model
             array_push( $obj['result'] , $url );
         }
 
-        // print_r( $obj );die;
-        //根据代理商id获取代理商的详细信息
-        // foreach( $obj['result'] as $index=>$item  )
-        {
-
-            // $dlsMod = new DlsMod();
-            // $dlsMod->getDlsInfo( $item['$dlsid'] );
-
-        }
-        // dump(  );
         return json_encode( $obj , JSON_UNESCAPED_UNICODE ) ; die;
 
     }
