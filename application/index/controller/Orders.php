@@ -257,6 +257,24 @@ class Orders extends Base
     }
 
     /**
+     * Api[done]
+     * 根据代理商id获取订单列表[已完成]
+     * @param  [int] $dlsid       [代理商id]
+     * @param  [int] $currentpage [当前页数]
+     * @param  [int] $pagesize    [每页显示数量]
+     * @param  [int] $status      [1-代收款 2-待发货  3-已发货  4-已取消]
+     * @return [type]              [description]
+     */
+    public function dlsOrderListApi(    )
+    {
+       $req = Request::instance()->param();
+
+       $modelObj  = new OrdersMod();
+
+       return $modelObj->dlsOrderList( $req['dlsid'] , $req['currentpage'] , $req['pagesize'] , $req['status']  );
+    }
+
+    /**
      * [getDetailApi 根据订单id获取订单详情 需要查询order、orderdetail、goods、photo表]
      * @param  [type] $orderid [description]
      * @return [type]          [description]
@@ -268,16 +286,22 @@ class Orders extends Base
       $oid = $req['orderid'] ;
       //1、获取订单信息
       $order = Db::table('orders')->where( 'id' , $oid )->select();
-      // print_r( $order );
+//       print_r( $order );
 // die;
 
       //2、获取订单详情-订单对应商品信息
       $detailCon = controller('Orderdetail');
       $detail = $detailCon->getDetail( $oid );
-      // print_r( $detail );
+      // print_r( $detail );die;
       $order[0]['detail'] = $detail;
-      // print_r( $order[0] );
+      // print_r( $order[0]['detail'] );die;
 
+      //3、根据订单信息内的代理商id获取代理商信息
+      $dlsid = $order[0]['dlsid'] ;
+      $dlsres = Db::table('dailishang')->where('id',$dlsid )->field('nickname,avatar')->select();
+      // print_r($order[0]);die;
+      $order[0]['dlsnickname'] = $dlsres[0]['nickname'];
+      $order[0]['dlsavatar'] = $dlsres[0]['avatar'];
       if( $order[0] )
       {
         $obj = array(
