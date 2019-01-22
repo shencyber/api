@@ -285,9 +285,11 @@ class Orders extends Base
       $req = Request::instance()->param();
       $oid = $req['orderid'] ;
       //1、获取订单信息
-      $order = Db::table('orders')->where( 'id' , $oid )->select();
-//       print_r( $order );
-// die;
+      $order = Db::table('orders')
+            ->join('gonghuoshang' , 'orders.ghsid=gonghuoshang.id','left')
+            ->field('orders.id,orders.ordercode,orders.ghsid,orders.dlsid,orders.ghsname,orders.createtime,orders.receivername,orders.receiverphone,orders.address,orders.totalprice,orders.expressno,orders.actualprice,orders.status,gonghuoshang.phone')
+            ->where( 'orders.id' , $oid )->select();
+
 
       //2、获取订单详情-订单对应商品信息
       $detailCon = controller('Orderdetail');

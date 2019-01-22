@@ -267,7 +267,7 @@ class OrdersMod extends Model
                 ->join('photo' , 'orderdetail.goodid = photo.goodid' , 'left')
                 ->join('goods' , 'goods.id =orderdetail.goodid ' , 'left')
                 ->field('orderdetail.unitprice,orderdetail.amount,goods.id,goods.source,goods.name as gname,photo.url')
-                ->where('orderid',$list[0]['id'])
+                ->where('orderid',$item['id'])
                 ->group('photo.goodid')
                 ->select();
                 foreach( $goods as $i=>$good )
