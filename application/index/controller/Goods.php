@@ -399,6 +399,103 @@ class Goods extends Base
 
     }
 
+
+
+    /**
+     * [getGoodsByKeyWordsApi 根据关键字查询商品信息] DONE
+     * @param  [type] $keyword [关键字]
+     * @return [type]          [description]
+     */
+    // public function getGoodsByKeyWordsApi($keyword)
+    public function getGoodsByKeyWordsApi()
+    {
+      $req = Request::instance();
+      $param = $req->param() ; 
+      
+      $keyword = explode(" " , $param['keyword'] ) ;
+      //去重
+      $keyword = array_unique($keyword) ; 
+      //过滤空字符串
+      $searchWord =array();
+      foreach ($keyword as $key => $val) 
+      {
+        if (  empty($val)  ) {  continue;  }
+        $searchWord[] = $val;
+      }
+      foreach($searchWord as $key=>$val)
+      {
+        $searchWord[$key] = "%".$val."%"; 
+      }
+      
+      // 1、根据关键词在goods表内根据name搜索对应的商品
+      if( empty($param['ghsid']) )
+      {
+        $goods = Db::table('goods')->where('name' , 'like' , $searchWord)->select();
+      }
+      else
+      {
+        $goods = Db::table('goods')->where('name' , 'like' , $searchWord)->where('ghsid' ,$param['ghsid'] )->select();
+      }
+
+      foreach( $goods as $key=>$val )
+      {
+        $url = Db::table('photo')->where('goodid' , $val['id'])->field('url')->find();
+        if( 1 == $val['source'] )
+        {
+          $url = array( Config::get('ImageBaseURL').$url['url'] ) ;
+        }
+        else if( 2 == $val['source'] )
+        {
+          
+          $url = array( Config::get('YPImageBaseUrl').$url['url'] ) ;
+        }
+        // print_r($url);
+        $goods[$key]['urls'] = $url ;
+      }
+
+      if( !empty($param['ghsid']) )
+      {
+          return json_encode(Array('status'=> 0,'desc' => "查询成功",'result' => $goods) ,JSON_UNESCAPED_UNICODE);
+      }
+
+      // 2、如果没有ghsid，则获取商品对应的供货商name和id
+      else
+      {
+
+        //获取商品对应的供货商id
+        $ghsids = array();
+        foreach( $goods as $key=>$val )
+        {
+          array_push( $ghsids , $val['ghsid'] );
+        }
+        $ghsids = array_unique($ghsids) ;
+        $ghs = Db::table('gonghuoshang')->where('id' , 'in' ,  $ghsids)->field('id,name')->select();
+        
+        $res =array(); 
+        foreach( $ghs as $key => $val )
+        {
+          $res[$key]['ghsid'] = $val['id'] ;
+          $res[$key]['ghsname'] = $val['name'] ;
+          $res[$key]['goods'] = array() ;
+          foreach( $goods as $index=>$good )
+          {
+            if( $good['ghsid'] == $val['id'] )
+            {
+              array_push( $res[$key]['goods'] , $good );
+              
+            }
+          }
+        }
+
+        // print_r( $res );die;
+         return json_encode(Array('status' => 0,'desc' => "查询成功",'result'  =>  $res ),JSON_UNESCAPED_UNICODE);
+
+      }
+     
+
+     
+    }
+
     
 
 
