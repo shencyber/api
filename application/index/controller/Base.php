@@ -3,6 +3,7 @@
 namespace app\index\controller;
 Use think\Controller;
 Use \think\Request;
+Use think\Db;
 
 class Base extends Controller
 {
@@ -35,6 +36,42 @@ class Base extends Controller
                 header('Access-Control-Allow-Methods:GET,POST,OPTIONS');
         }
 
+        //如果控制器在白名单内,则放行
+        $baimingdan = ['register' , 'login'] ;
+        $action = Request::instance()->action();
+        if( in_array( $action , $baimingdan )  )
+           return ;
+
+        //如果token不存在
+        $server = Request::instance()->server(); 
+        if( empty( $server['HTTP_TOKEN'] ) )
+        {
+            echo  json_encode(Array('status'=>-1,'desc'=>'token丢了','result'=>'') , JSON_UNESCAPED_UNICODE)  ;
+            die;
+            
+        }
+        // 判断token是否过期
+        $token_end_time = Db::table('gonghuoshang')->where('token' , $server['HTTP_TOKEN'])->field('token_end_time')->select();
+        if( empty($token_end_time) )
+        {
+            
+            echo  json_encode(Array('status'=>-1,'desc'=>'token不存在','result'=>'') , JSON_UNESCAPED_UNICODE);
+            die;
+        }
+        else
+        {
+
+            $token_end_time =  $token_end_time[0]['token_end_time'] ;
+            $now = date('Y-m-d H:i:s');
+
+            if( $now >= $token_end_time  )
+            {
+
+                echo  json_encode(Array('status'=>-1,'desc'=>'token已过期','result'=>'') , JSON_UNESCAPED_UNICODE);
+                die;
+            }
+
+        }
 
         // //判断登陆状态：
         // if (Session::has('user')) {

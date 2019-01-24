@@ -16,17 +16,42 @@ class Ghs extends Base
 
     /**
      * 供货商注册
-     * @param  [type] $name     [姓名]
      * @param  [type] $phone    [手机]
      * @param  [type] $password [密码]
      * @return [type]           [description]
      */
-    // public function  register( $name , $phone , $password )
+    // public function  register( $phone , $password )
     public function  register( )
     {
-        $ghs  = new GhsMod();
-        $res = $ghs->register( '李四' ,'2369885' ,'12345678' );
-        return $res ;
+       
+        $req = Request::instance();
+        $param = $req->param();
+        $phone = $param['phone'];
+        $password = $param['password'];
+
+        // 1、判断手机号是否已经被注册
+        $account = Db::table('gonghuoshang')->where('phone' , $phone )->field('id,password,token,token_end_time')->select();
+        if( !empty($account) )
+        {
+            return json_encode(Array( 'status'=>1 , 'desc'=>'该手机号已被注册' , 'result'=>'' ) , JSON_UNESCAPED_UNICODE) ;
+            
+        }
+        else
+        {
+            //token过期时间  30天
+            $token_end_time = mktime( date("H") ,date("i"), date("s") , date("m") ,date("d")+30 ,date("Y") );
+            $data = [
+                'phone'    => $phone ,
+                'password' => md5(md5($password)) ,
+                'regtime'  => date("Y-m-d H:i:s") ,
+                'status'   => 0 ,
+                'token'    => $this->createToken($phone,$password),
+                'token_end_time' =>  date("Y-m-d H:i:s" , $token_end_time)
+            ] ;
+            $newAccount = Db::table('gonghuoshang')->insert( $data );
+            
+            return json_encode(Array('id'=>Db::table('gonghuoshang')->getLastInsID(),'token'=>$data['token']) , JSON_UNESCAPED_UNICODE);
+        }
 
     }
 
@@ -87,6 +112,8 @@ class Ghs extends Base
                 $obj['result']['name'] =$resInfo[0]['name']; 
                 $obj['result']['phone'] =$resInfo[0]['phone']; 
                 $obj['result']['gno'] =$resInfo[0]['gno']; 
+                $obj['result']['token'] =$this->createToken( $req['phone'] , $req['password'] );
+                $this->updateToken( $res[0]['id'] , $obj['result']['token'] );
             // }
         // }
         
@@ -96,7 +123,51 @@ class Ghs extends Base
        // 
     }
 
+    /**
+     * [createToken 生成token]
+     * @param  [type] $phone    [手机号]
+     * @param  [type] $password [密码]
+     * @return [type]           [token]
+     */
+    private function createToken( $phone , $password )
+    {
+        $header=Array("alg"=>"HS256","type"=>"JWT");
+        $payload = Array("phone"=>$phone , "password"=>$password , "time"=>time());
 
+        $base64_h = base64_encode( json_encode($header) ) ;
+        $base64_p = base64_encode( json_encode($payload) ) ;
+        return  md5(md5(md5( $base64_h.$base64_p ))) ;
+    }
+
+    /**
+     * [hasExpiredToken 判断用户的token是否已经过期]
+     * @param  [type]  $uid [用户id]
+     * @return boolean      [true-过期 false-未过期]
+     */
+    // public function hasExpiredToken( $uid )
+    public function hasExpiredToken(  )
+    {
+        $param = Request::instance()->param();
+        $uid = $param['uid'];
+        $token_end_time = Db::table('gonghuoshang')->where('id' , $uid)->field('token_end_time')->select();
+        $token_end_time =  $token_end_time[0]['token_end_time'] ;
+        $now = date('Y-m-d H:i:s');
+
+        if( $now >= $token_end_time  ) return "true";
+        else return "false" ;
+
+    }
+
+    /**
+     * [updateToken 更新token]
+     * @param  [type] $ghsid [供货商id]
+     * @param  [type] $newToken [description]
+     * @return [type]           [true-更新成功 false-更新失败]
+     */
+    public function updateToken( $ghsid , $newToken )
+    {
+        Db::table('gonghuoshang')->where('id' , $ghsid)->update(['token'=>$newToken]);
+    }
 
 
 
