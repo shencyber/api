@@ -37,7 +37,7 @@ class Base extends Controller
         }
 
         //如果控制器在白名单内,则放行
-        $baimingdan = ['register' , 'login'] ;
+        $baimingdan = ['register' , 'login' , 'auhorize'] ;
         $action = Request::instance()->action();
         if( in_array( $action , $baimingdan )  )
            return ;
