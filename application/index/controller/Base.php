@@ -51,7 +51,7 @@ class Base extends Controller
             
         }
         // 判断token是否过期
-        $token_end_time = Db::table('gonghuoshang')->where('token' , $server['HTTP_TOKEN'])->field('token_end_time')->select();
+        $token_end_time = Db::table('gonghuoshang')->where('token' , $server['HTTP_TOKEN'])->field('end')->select();
         if( empty($token_end_time) )
         {
             
@@ -61,7 +61,7 @@ class Base extends Controller
         else
         {
 
-            $token_end_time =  $token_end_time[0]['token_end_time'] ;
+            $token_end_time =  $token_end_time[0]['end'] ;
             $now = date('Y-m-d H:i:s');
 
             if( $now >= $token_end_time  )

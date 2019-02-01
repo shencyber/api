@@ -218,6 +218,7 @@ class GhsMod extends Model
         //token过期时间  6天12小时
         $end = mktime( date("H")+10 ,date("i"), date("s") , date("m") ,date("d")+6 ,date("Y") );
         $end = date( "Y-m-d H:i:s" , $end);
+        // echo $end;
         // echo $now;
         // echo "</br>";
         // echo date("Y-m-d H:i:s" , $fut);
