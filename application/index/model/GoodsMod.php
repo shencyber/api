@@ -41,6 +41,7 @@ class GoodsMod extends Model
             'name'=>$name , 
             'desc'=>$desc , 
             'unitprice'=>$unitprice,
+            'unit'=>$unit,
             'ghsid'=>$ghsid,
             'cateid'=>$cateid,
             'freighttemplateid'=>$freighttemplateid,
@@ -213,12 +214,14 @@ class GoodsMod extends Model
      * @param [int] $[name] [<商品名称>]
      * @param [int] $[desc] [<商品描述>]
      * @param [int] $[unitprice] [<单价>]
+     * @param [int] $[unit] [<单位>]
+     * @param [int] $[cateId] [<分类id>]
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
      * @return [type] [description]
      */
-    public function updateGoods($goodsid , $name , $desc , $unitprice,$unit)
+    public function updateGoods($goodsid , $name , $desc , $unitprice,$unit , $cateId)
     {
-        $data = [ 'name'=>$name , 'desc'=>$desc , 'unitprice'=>$unitprice ,'unit'=>$unit];
+        $data = [ 'name'=>$name , 'desc'=>$desc , 'unitprice'=>$unitprice ,'unit'=>$unit , 'cateid'=>$cateId];
         // print_r($data);die;
         $res = DB::table('goods')->where(['id'=>$goodsid])->update( $data );
         if( $res >= 0 )

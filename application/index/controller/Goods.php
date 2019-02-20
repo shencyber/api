@@ -98,7 +98,7 @@ class Goods extends Base
         
         $modelObj  = new GoodsMod();
 
-        $res = $modelObj->updateGoods( $req['goodsid'] , $req['name'] , $req['desc'] , $req['unitprice'],$req['unit']   );
+        $res = $modelObj->updateGoods( $req['goodsid'] , $req['name'] , $req['desc'] , $req['unitprice'],$req['unit'] , $req['cateId']  );
         // return $res ;
         // die;
         $res_arr = json_decode($res , true) ;
