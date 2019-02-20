@@ -137,7 +137,7 @@ class Dls extends Controller
         }
         // dump( $ghsids );die;
         // 查询相关供货商信息
-        $ghs = Db::table('gonghuoshang')->where('id', "in" , $ghsids )->field('id,name')->select();
+        $ghs = Db::table('gonghuoshang')->where('id', "in" , $ghsids )->field('id,wnickname')->select();
 
         $obj = Array(
             'status' => 0,

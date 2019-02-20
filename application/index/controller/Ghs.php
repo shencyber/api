@@ -23,7 +23,8 @@ class Ghs extends Base
     // public function  register( $phone , $password )
     public function  register( )
     {
-       
+        // $count = DB::table('gonghuoshang')->count();
+        // print_r($count);die;
         $req = Request::instance();
         $param = $req->param();
         $phone = $param['phone'];
@@ -208,6 +209,34 @@ class Ghs extends Base
      * @return [type] [description]
      */
     public function searchGhsByNo()
+    {
+        $req = Request::instance()->param();
+        $res = Db::table('gonghuoshang')->where(['gno'=>$req['ghsno']])->field('id,wnickname,gno')->select();
+        if( empty($res) )
+        {
+            $obj = Array(
+                'status' => 1,
+                'desc'   => '没有该供货商' ,
+                'result' => null
+            );
+        }
+        else
+        {
+            $obj = Array(
+                'status' => 0,
+                'desc'   => '供货商信息' ,
+                'result' => $res
+            );
+        }
+
+        return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+    }
+
+    /**
+     * [getGhsByNo 根据供货商微信号查找供货商]
+     * @return [type] [description]
+     */
+    public function searchGhsByNickname()
     {
         $req = Request::instance()->param();
         $res = Db::table('gonghuoshang')->where(['gno'=>$req['ghsno']])->field('id,name,gno')->select();

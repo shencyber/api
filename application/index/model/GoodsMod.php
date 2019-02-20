@@ -28,11 +28,12 @@ class GoodsMod extends Model
      * @param [int] $[unitprice] [<单价>]
      * @param [int] $[unit] [<单位>]
      * @param [int] $[ghsid] [供货商id]
+     * @param [int] $[cateid] [分类id]
      * @param [int] $[freighttemplateid] [运费模板id>]<第一阶段先不加>
      * @param [int] $[imgurls] [商品图片地址数组>]<第一阶段先不加>
      * @return [type] [description]
      */
-    public function addLocal( $name , $desc="" ,$unitprice, $unit ,$ghsid,$freighttemplateid=""   )
+    public function addLocal( $name , $desc="" ,$unitprice, $unit ,$ghsid, $cateid , $freighttemplateid=""   )
     {
         $modelObj = model('GoodsMod');
 
@@ -41,6 +42,7 @@ class GoodsMod extends Model
             'desc'=>$desc , 
             'unitprice'=>$unitprice,
             'ghsid'=>$ghsid,
+            'cateid'=>$cateid,
             'freighttemplateid'=>$freighttemplateid,
             'source'=>GoodsMod::SOURCE_LOCAL,
             'status'=>GoodsMod::SHANG_JIA,
@@ -297,7 +299,13 @@ class GoodsMod extends Model
     public function getGoodsById( $gid )
     {
        
-        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.source,g.status,g.unitprice,g.unit,group_concat(p.url) urls,g.desc')->select();
+        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.source,g.status,g.unitprice,g.unit,g.cateid,group_concat(p.url) urls,g.desc')->select();
+
+        $cate = Db::table("category")->where('id' , $list[0]['cateid'])->field('cate')->select();
+        
+        $list[0]['cate'] = $cate[0]['cate'] ;
+        // dump( $list );die;
+
         return $list;
 
     

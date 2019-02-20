@@ -34,16 +34,14 @@ class OrdersMod extends Model
      * @param [int] $totalfreight [总运费>]
      * @return [type] [description]
      */
-    public function add($ordercode,$ghsid,$ghsname,$dlsid,$receivername,$receiverphone,$address,$totalprice,$totalfreight )
+    public function add($ordercode,$ghsid,$ghsnickname,$dlsid,$address,$totalprice,$totalfreight )
     {
         $modelObj = model('OrdersMod');
         $modelObj->data( [ 
             'ordercode'      =>   $ordercode , 
             'ghsid'          =>   $ghsid , 
-            'ghsname'        =>   $ghsname , 
+            'ghsnickname'        =>   $ghsnickname , 
             'dlsid'          =>   $dlsid,
-            'receivername'   =>   $receivername,
-            'receiverphone'  =>   $receiverphone,
             'address'        =>   $address,
             'totalprice'     =>   $totalprice,
             'totalfreight'   =>   $totalfreight,
@@ -252,11 +250,12 @@ class OrdersMod extends Model
         }
 
         $list = Db::table('orders')->alias('ord')
-            ->join('gonghuoshang ghs','ord.ghsid = ghs.id','left')
+            // ->join('gonghuoshang ghs','ord.ghsid = ghs.id','left')
             ->where([ 'ord.dlsid'=> $dlsid , 'ord.status'=>$status ])
             ->order('createtime desc')
             ->page($currentpage , $pagesize)
-            ->field('ord.id,ord.ordercode,ord.totalprice,ord.ghsid,ord.createtime,ord.status,ord.expressno,ghs.name as ghsname')
+            // ->field('ord.id,ord.ordercode,ord.totalprice,ord.ghsid,ord.createtime,ord.status,ord.expressno,ghs.nickname as ghsname')
+            ->field('id,ordercode,totalprice,ghsid,createtime,status,expressno,ghsnickname')
             ->select();
 
         // print_r($list);die;

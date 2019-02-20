@@ -29,7 +29,7 @@ class Goods extends Base
         $req = Request::instance()->param();
         $modelObj  = new GoodsMod();
 
-        $res = $modelObj->addLocal( $req['name'] , $req['desc'] , $req['unitprice'] ,$req['unit'], $req['ghsid'] );
+        $res = $modelObj->addLocal( $req['name'] , $req['desc'] , $req['unitprice'] ,$req['unit'], $req['ghsid'] , $req['cateId'] );
         $res_arr = json_decode($res , true) ;
         // dump( $res_arr );die;
         if( $res_arr['status'] != 0 )

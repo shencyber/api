@@ -35,10 +35,10 @@ class Orders extends Base
         $insertedId = $modelObj->add( 
             $this->creareOrderCode(), 
             $req['ghsid'],
-            $req['ghsname'],
+            $req['ghsnickname'],
             $req['dlsid'],
-            $req['receivername'],
-            $req['receiverphone'],
+            // $req['receivername'],
+            // $req['receiverphone'],
             $req['address'],
             $req['totalprice'],
             $req['totalfreight']
@@ -287,7 +287,7 @@ class Orders extends Base
       //1、获取订单信息
       $order = Db::table('orders')
             ->join('gonghuoshang' , 'orders.ghsid=gonghuoshang.id','left')
-            ->field('orders.id,orders.ordercode,orders.ghsid,orders.dlsid,orders.ghsname,orders.createtime,orders.receivername,orders.receiverphone,orders.address,orders.totalprice,orders.expressno,orders.actualprice,orders.status,gonghuoshang.phone')
+            ->field('orders.id,orders.ordercode,orders.ghsid,orders.dlsid,orders.ghsnickname,orders.createtime,orders.receivername,orders.receiverphone,orders.address,orders.totalprice,orders.expressno,orders.actualprice,orders.status,gonghuoshang.phone')
             ->where( 'orders.id' , $oid )->select();
 
 
