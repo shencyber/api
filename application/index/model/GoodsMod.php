@@ -302,13 +302,21 @@ class GoodsMod extends Model
     public function getGoodsById( $gid )
     {
        
-        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.source,g.status,g.unitprice,g.unit,g.cateid,group_concat(p.url) urls,g.desc')->select();
+        $list = Db::table('goods')->alias('g')->join('photo p' , 'g.id=p.goodid')->where(['g.id'=>$gid])->field('g.id,g.name,g.source,g.uptime,g.downtime,g.status,g.unitprice,g.unit,g.cateid,group_concat(p.url) urls,g.desc')->select();
 
-        $cate = Db::table("category")->where('id' , $list[0]['cateid'])->field('cate')->select();
+
+        if( $list[0]['cateid'] > 0 )
+        {
+            $cate = Db::table("category")->where('id' , $list[0]['cateid'])->field('cate')->select();
+            $list[0]['cate'] = $cate[0]['cate'] ;
+        }
+        else
+        {
+
+            $list[0]['cate'] = "未分类" ;
+
+        }
         
-        $list[0]['cate'] = $cate[0]['cate'] ;
-        // dump( $list );die;
-
         return $list;
 
     

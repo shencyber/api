@@ -308,7 +308,7 @@ class Goods extends Base
     }
 
     /**GET DONE
-     * 根据分类id，获取商品列表
+     * 根据分类id和供货商id，获取商品列表
      * @param  [type] $cateId [分类id]
      * @param  [type] $type [1-已上架  2-已下架]
      * @param  [type] $currentpage [当前页数]
@@ -318,8 +318,10 @@ class Goods extends Base
     public function getGoodsListByCateId()
     {
         $req = Request::instance()->param();
+        $con = array("ghsid"=> $req['ghsid'] ,"cateid"=>$req['cateId'] , "status"=>$req['type']) ;
 
-        $con = array("cateid"=>$req['cateId'] , "status"=>$req['type']) ;
+        $count = Db::table('goods')->where( $con )->count();
+
         $res  = Db::table('goods')->where( $con )->page($req['currentpage'],$req['pagesize'])->select();
 
         if( !$res )
@@ -357,9 +359,10 @@ class Goods extends Base
 
         }
        
+
         $obj =array(
           'status' => 0,
-          'total'  => count($res) ,
+          'total'  => $count ,
           'desc'   => '查询成功',
           'result' => $res
 
@@ -369,8 +372,17 @@ class Goods extends Base
 
     }
 
-
-
+    /**
+     *  GET DONE
+     *  获取商品总数量
+     *  
+     */
+    public function getTotal()
+    {
+      $param = Request::instance()->param();
+      $count = Db::table('goods')->where('ghsid' , $param['ghsid'] )->count();
+      return json_encode( Array('status'=>0,'result'=>$count)  , JSON_UNESCAPED_UNICODE );
+    }
 
 
     /**

@@ -114,7 +114,8 @@ class Category extends Controller
     }
 
     /**
-     * [getAllCateListWithGoodsCount 查询所有的分类及其下面的商品数量,包括未分类的本地商品]
+     * GET done
+     * [getCateListWithGoodsCount 查询所有的分类及其下面的商品数量,包括未分类的商品]
      * @return [JSON] {
                         "status": 0,
                         "desc": "查询成功",
@@ -134,7 +135,7 @@ class Category extends Controller
                         ]
                     }
      */
-    public  function getCateListWithLocalGoodsCount()
+    public  function getCateListWithGoodsCount()
     {
         $param = Request::instance()->param();
         
@@ -149,7 +150,7 @@ class Category extends Controller
         }
 
         //查询未分类的数据
-        $_nocate_count = Db::table("goods")->where(['source'=>1,'cateid'=>0])->count();
+        $_nocate_count = Db::table("goods")->where(['cateid'=>0])->count();
 
         array_unshift($list, Array('id'=>0,'cate'=>'未分类','count'=>$_nocate_count));
         
