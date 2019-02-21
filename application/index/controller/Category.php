@@ -95,11 +95,66 @@ class Category extends Controller
     /**
      * 根据供货商id获取所有分类
      */
-    public function getCateList(  )
+    public function getCateList()
     {
         $param = Request::instance()->param();
+        
+        //1、查询已有的分类
         $list = Db::table($this->table)->where(['ghsid'=>$param['ghsid']])->order('create_time','desc')->select();
+
+        // foreach( $list as $item=>$val )
+        // {
+
+        //     $_count = Db::table("goods")->where('cateid' , $val['id'] )->count();
+        //     $list[$item]['count'] = $_count ;   
+        // }
+
         return json_encode(Array('status'=>0,'desc'=>'查询成功','result'=>$list) , JSON_UNESCAPED_UNICODE);
+
+    }
+
+    /**
+     * [getAllCateListWithGoodsCount 查询所有的分类及其下面的商品数量,包括未分类的本地商品]
+     * @return [JSON] {
+                        "status": 0,
+                        "desc": "查询成功",
+                        "result": [
+                            {
+                                "id": 0,
+                                "cate": "未分类",
+                                "count": 5
+                            },
+                            {
+                                "id": "13",
+                                "cate": "ddf",
+                                "ghsid": "1",
+                                "create_time": "2019-02-19 17:42:31",
+                                "count": 1
+                            }
+                        ]
+                    }
+     */
+    public  function getCateListWithLocalGoodsCount()
+    {
+        $param = Request::instance()->param();
+        
+        //1、查询已有的分类
+        $list = Db::table($this->table)->where(['ghsid'=>$param['ghsid']])->order('create_time','desc')->select();
+
+        foreach( $list as $item=>$val )
+        {
+
+            $_count = Db::table("goods")->where('cateid' , $val['id'] )->count();
+            $list[$item]['count'] = $_count ;   
+        }
+
+        //查询未分类的数据
+        $_nocate_count = Db::table("goods")->where(['source'=>1,'cateid'=>0])->count();
+
+        array_unshift($list, Array('id'=>0,'cate'=>'未分类','count'=>$_nocate_count));
+        
+        return json_encode(Array('status'=>0,'desc'=>'查询成功','result'=>$list) , JSON_UNESCAPED_UNICODE);
+
     }
 
   

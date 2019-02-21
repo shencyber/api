@@ -307,6 +307,72 @@ class Goods extends Base
 
     }
 
+    /**GET DONE
+     * 根据分类id，获取商品列表
+     * @param  [type] $cateId [分类id]
+     * @param  [type] $type [1-已上架  2-已下架]
+     * @param  [type] $currentpage [当前页数]
+     * @param  [type] $pagesize [每页显示数量]
+     * @return [type]        [description]
+     */
+    public function getGoodsListByCateId()
+    {
+        $req = Request::instance()->param();
+
+        $con = array("cateid"=>$req['cateId'] , "status"=>$req['type']) ;
+        $res  = Db::table('goods')->where( $con )->page($req['currentpage'],$req['pagesize'])->select();
+
+        if( !$res )
+        {
+          $obj = Array(
+            'status' => 0,
+            'total'  => 0,
+            'desc'   => '查询成功',
+            'result' => []
+          );
+
+          return json_encode($obj , JSON_UNESCAPED_UNICODE);die;
+        }
+        
+
+        foreach ($res as $key => $value) {
+          
+          $res[$key]['urls'] = Array() ;
+          $urls = Db::table('photo')->where('goodid',$value['id'])->field('url')->find();
+          $res[$key]['urls'][0] = $urls['url'] ;
+
+        }
+
+        foreach( $res as $key=>$val )
+        {
+            
+            foreach( $val['urls'] as $index=>$url )
+            {
+
+              if( 1 == $val['source'] )
+                $res[$key]['urls'][$index] = Config::get('ImageBaseURL').$url;
+              else if( 2 == $val['source'] )
+                $res[$key]['urls'][$index] = Config::get('YPImageBaseUrl').$url;
+            }
+
+        }
+       
+        $obj =array(
+          'status' => 0,
+          'total'  => count($res) ,
+          'desc'   => '查询成功',
+          'result' => $res
+
+        ); 
+
+        return json_encode($obj , JSON_UNESCAPED_UNICODE  );die;
+
+    }
+
+
+
+
+
     /**
      * [searchGoodsByImage 根据用户上传的图片查找对应的商品及其供货商信息]
      * @return [array] [status 0 - 找到  1-未找到]
